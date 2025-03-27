@@ -1,9 +1,11 @@
+import Container from './Container';
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-white py-6 shadow-inner">
-      <div className="container mx-auto px-4">
+      <Container>
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-gray-600 text-sm">
@@ -22,7 +24,7 @@ const Footer = () => {
             </a>
           </div>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 };
