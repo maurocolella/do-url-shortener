@@ -7,7 +7,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
@@ -38,8 +38,9 @@ export class AuthController {
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
     const { user, accessToken } = await this.authService.googleLogin(req.user);
     
+    const frontendUrl = this.configService.get<string>('frontend.url');
+    
     // Redirect to frontend with token
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+    return res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
   }
 }

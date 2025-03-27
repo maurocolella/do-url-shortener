@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UrlEntity } from '../../url/entities/url.entity';
+import { AliasEntity } from '../../url/entities/alias.entity';
 
 export enum AuthProviderEnum {
   LOCAL = 'local',
@@ -38,6 +39,9 @@ export class UserEntity {
 
   @OneToMany(() => UrlEntity, url => url.user)
   urls: UrlEntity[];
+
+  @OneToMany(() => AliasEntity, alias => alias.user)
+  aliases: AliasEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

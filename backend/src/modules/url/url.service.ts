@@ -3,10 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { UrlEntity } from './entities/url.entity';
+import { AliasEntity } from './entities/alias.entity';
+import { CanonicalUrlEntity } from './entities/canonical-url.entity';
 import { CreateUrlDto } from './dto/create-url.dto';
 import { UpdateUrlDto } from './dto/update-url.dto';
 import { RedisService } from '../redis/redis.service';
 import { Base62Util } from '../../common/utils/base62.util';
+import { UrlNormalizer } from '../../common/utils/url-normalizer.util';
 import { UserEntity } from '../user/entities/user.entity';
 
 @Injectable()
@@ -14,6 +17,10 @@ export class UrlService {
   constructor(
     @InjectRepository(UrlEntity)
     private urlRepository: Repository<UrlEntity>,
+    @InjectRepository(AliasEntity)
+    private aliasRepository: Repository<AliasEntity>,
+    @InjectRepository(CanonicalUrlEntity)
+    private canonicalUrlRepository: Repository<CanonicalUrlEntity>,
     private redisService: RedisService,
     private configService: ConfigService,
   ) {}
@@ -21,31 +28,58 @@ export class UrlService {
   async create(createUrlDto: CreateUrlDto, user?: UserEntity): Promise<UrlEntity> {
     const { originalUrl, customSlug } = createUrlDto;
     
-    // Generate or use custom slug
-    let slug: string;
-    if (customSlug) {
-      // Check if custom slug is already taken
-      const existingUrl = await this.urlRepository.findOne({ where: { slug: customSlug } });
-      if (existingUrl) {
-        throw new ConflictException(`Slug '${customSlug}' is already in use`);
-      }
-      slug = customSlug;
-    } else {
-      slug = await this.generateUniqueSlug();
+    // Normalize the URL
+    const normalizedUrl = UrlNormalizer.normalize(originalUrl);
+    
+    // Get or create canonical URL
+    let canonicalUrl = await this.canonicalUrlRepository.findOne({ 
+      where: { canonicalUrl: normalizedUrl } 
+    });
+    
+    if (!canonicalUrl) {
+      canonicalUrl = this.canonicalUrlRepository.create({
+        canonicalUrl: normalizedUrl
+      });
+      canonicalUrl = await this.canonicalUrlRepository.save(canonicalUrl);
     }
     
-    // Create the URL entity
-    const url = this.urlRepository.create({
-      slug,
-      originalUrl,
-      userId: user?.id,
+    // Use anonymous user ID if no user provided
+    const userId = user?.id || '00000000-0000-0000-0000-000000000000';
+    
+    // Generate or use custom alias
+    let alias: string;
+    if (customSlug) {
+      // Check if custom slug is already taken
+      const existingAlias = await this.aliasRepository.findOne({ where: { alias: customSlug } });
+      if (existingAlias) {
+        throw new ConflictException(`Alias '${customSlug}' is already in use`);
+      }
+      alias = customSlug;
+    } else {
+      alias = await this.generateUniqueAlias(normalizedUrl, userId);
+    }
+    
+    // Create the alias entity
+    const aliasEntity = this.aliasRepository.create({
+      alias,
+      userId,
+      canonicalUrl,
     });
     
     // Save to database
-    const savedUrl = await this.urlRepository.save(url);
+    const savedAlias = await this.aliasRepository.save(aliasEntity);
     
     // Cache the URL mapping
-    await this.cacheUrl(slug, originalUrl);
+    await this.cacheUrl(alias, normalizedUrl);
+    
+    // For backward compatibility, create a URL entity as well
+    const url = this.urlRepository.create({
+      slug: alias,
+      originalUrl: normalizedUrl,
+      userId,
+    });
+    
+    const savedUrl = await this.urlRepository.save(url);
     
     return savedUrl;
   }
@@ -97,11 +131,24 @@ export class UrlService {
         throw new ConflictException(`Slug '${updateUrlDto.slug}' is already in use`);
       }
       
+      // Also check in aliases table
+      const existingAlias = await this.aliasRepository.findOne({ where: { alias: updateUrlDto.slug } });
+      if (existingAlias) {
+        throw new ConflictException(`Alias '${updateUrlDto.slug}' is already in use`);
+      }
+      
       // Remove old cached URL
       await this.redisService.del(`url:${url.slug}`);
       
       // Update slug
       url.slug = updateUrlDto.slug;
+      
+      // Update alias in aliases table
+      const alias = await this.aliasRepository.findOne({ where: { alias: url.slug } });
+      if (alias) {
+        alias.alias = updateUrlDto.slug;
+        await this.aliasRepository.save(alias);
+      }
       
       // Cache new URL mapping
       await this.cacheUrl(url.slug, url.originalUrl);
@@ -116,6 +163,12 @@ export class UrlService {
     // Remove cached URL
     await this.redisService.del(`url:${url.slug}`);
     
+    // Remove alias
+    const alias = await this.aliasRepository.findOne({ where: { alias: url.slug } });
+    if (alias) {
+      await this.aliasRepository.remove(alias);
+    }
+    
     await this.urlRepository.remove(url);
   }
 
@@ -129,7 +182,27 @@ export class UrlService {
       return cachedUrl;
     }
     
-    // If not in cache, get from database
+    // If not in cache, try to get from aliases table first
+    try {
+      const alias = await this.aliasRepository.findOne({ 
+        where: { alias: slug },
+        relations: ['canonicalUrl']
+      });
+      
+      if (alias) {
+        // Cache the URL for future requests
+        await this.cacheUrl(slug, alias.canonicalUrl.canonicalUrl);
+        
+        // Increment visit count
+        await this.incrementVisits(slug);
+        
+        return alias.canonicalUrl.canonicalUrl;
+      }
+    } catch (error) {
+      console.error('Error finding alias:', error);
+    }
+    
+    // If not found in aliases, fall back to the old urls table
     const url = await this.findBySlug(slug);
     
     // Cache the URL for future requests
@@ -142,32 +215,50 @@ export class UrlService {
   }
 
   private async incrementVisits(slug: string): Promise<void> {
+    // Increment in urls table
     await this.urlRepository.increment({ slug }, 'visits', 1);
+    
+    // Also increment in aliases table
+    await this.aliasRepository.increment({ alias: slug }, 'visits', 1);
   }
 
-  private async generateUniqueSlug(): Promise<string> {
-    const slugLength = this.configService.get<number>('url.slugLength') || 6;
-    let slug = '';
-    let isUnique = false;
+  private async generateUniqueAlias(normalizedUrl: string, userId: string): Promise<string> {
+    // Generate a namespaced hash based on URL and user ID
+    const hash = UrlNormalizer.generateNamespacedHash(normalizedUrl, userId);
     
-    // Try to generate a unique slug
-    while (!isUnique) {
-      slug = Base62Util.generateRandom(slugLength);
-      
-      // Check if slug exists in cache
-      const existsInCache = await this.redisService.exists(`url:${slug}`);
-      if (existsInCache) {
-        continue;
-      }
-      
-      // Check if slug exists in database
-      const existingUrl = await this.urlRepository.findOne({ where: { slug } });
-      if (!existingUrl) {
-        isUnique = true;
-      }
+    // Convert hash to Base62
+    const slugLength = this.configService.get<number>('url.slugLength') || 6;
+    const baseAlias = Base62Util.encode(parseInt(hash.substring(0, 10)));
+    
+    // Ensure the alias is the right length
+    let alias = baseAlias.substring(0, slugLength);
+    if (alias.length < slugLength) {
+      alias = alias.padEnd(slugLength, '0');
     }
     
-    return slug;
+    // Check if alias exists
+    const existingAlias = await this.aliasRepository.findOne({ where: { alias } });
+    if (existingAlias) {
+      // If collision occurs, add a random suffix
+      let isUnique = false;
+      let uniqueAlias = '';
+      
+      while (!isUnique) {
+        // Generate a random suffix
+        const suffix = Base62Util.generateRandom(2);
+        uniqueAlias = alias.substring(0, slugLength - 2) + suffix;
+        
+        // Check if unique
+        const exists = await this.aliasRepository.findOne({ where: { alias: uniqueAlias } });
+        if (!exists) {
+          isUnique = true;
+        }
+      }
+      
+      return uniqueAlias;
+    }
+    
+    return alias;
   }
 
   private async cacheUrl(slug: string, originalUrl: string): Promise<void> {

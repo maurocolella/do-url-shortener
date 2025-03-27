@@ -10,7 +10,7 @@ import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserEntity } from '../user/entities/user.entity';
 
-@Controller('urls')
+@Controller('api/urls')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UrlController {
   constructor(

@@ -1,10 +1,12 @@
-import { IsUrl, IsOptional, IsString, Matches } from 'class-validator';
+import { IsString, IsOptional, Matches, Validate } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { UrlNormalizer } from '../../../common/utils/url-normalizer.util';
 
 export class CreateUrlDto {
-  @IsUrl({
-    require_protocol: true,
-    require_valid_protocol: true,
-    protocols: ['http', 'https'],
+  @IsString()
+  @Transform(({ value }) => {
+    // Normalize the URL before validation
+    return UrlNormalizer.normalize(value);
   })
   originalUrl: string;
 

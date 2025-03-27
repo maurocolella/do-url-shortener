@@ -4,13 +4,13 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserEntity } from './entities/user.entity';
 
-@Controller('users')
+@Controller('api/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getProfile(@GetUser() user: UserEntity) {
+  async getProfile(@GetUser() user: UserEntity) {
     return user;
   }
 }
