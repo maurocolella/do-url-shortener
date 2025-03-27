@@ -11,13 +11,13 @@ const Footer = () => {
             </p>
           </div>
           <div className="flex space-x-4">
-            <a href="#" className="text-gray-600 hover:text-blue-600 text-sm">
+            <a href="#" className="text-gray-600 hover:text-cyan-600 text-sm">
               Terms of Service
             </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 text-sm">
+            <a href="#" className="text-gray-600 hover:text-cyan-600 text-sm">
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-600 hover:text-blue-600 text-sm">
+            <a href="#" className="text-gray-600 hover:text-cyan-600 text-sm">
               Contact Us
             </a>
           </div>

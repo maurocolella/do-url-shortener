@@ -7,7 +7,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #f8fafc; /* slate-50 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,13 +15,36 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Default link styling */
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #0891b2; /* cyan-600 */
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #0e7490; /* cyan-700 */
+}
+
+/* Override for links with bg-cyan-600 class to ensure white text */
+a.bg-cyan-600 {
+  color: white;
+}
+a.bg-cyan-600:hover {
+  color: white;
+}
+
+/* Custom Google button styling */
+button.google-btn {
+  background-color: white;
+  color: #4b5563; /* gray-600 */
+  border: 1px solid #d1d5db; /* gray-300 */
+}
+button.google-btn:hover {
+  background-color: #f9fafb; /* gray-50 */
+}
+button.google-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* blue-500 with opacity */
 }
 
 body {
@@ -44,12 +67,13 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #0891b2; /* cyan-600 */
+  color: white;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  background-color: #0e7490; /* cyan-700 */
 }
 button:focus,
 button:focus-visible {
@@ -58,13 +82,13 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #334155; /* slate-700 */
+    background-color: #f8fafc; /* slate-50 */
   }
   a:hover {
-    color: #747bff;
+    color: #0e7490; /* cyan-700 */
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #0891b2; /* cyan-600 */
   }
 }

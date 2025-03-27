@@ -59,7 +59,7 @@ const UrlDetailsPage = () => {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
       </div>
     );
   }
@@ -85,7 +85,7 @@ const UrlDetailsPage = () => {
         <p className="text-gray-500 mb-6">The URL you're looking for doesn't exist or has been deleted.</p>
         <button
           onClick={() => navigate('/dashboard')}
-          className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
+          className="bg-cyan-600 text-white py-2 px-6 rounded-md hover:bg-cyan-700"
         >
           Back to Dashboard
         </button>
@@ -113,7 +113,7 @@ const UrlDetailsPage = () => {
               href={currentUrl.originalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline break-all mr-2"
+              className="text-cyan-600 hover:underline break-all mr-2"
             >
               {currentUrl.originalUrl}
             </a>
@@ -136,7 +136,7 @@ const UrlDetailsPage = () => {
               href={currentUrl.shortUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline mr-2"
+              className="text-cyan-600 hover:underline mr-2"
             >
               {currentUrl.shortUrl}
             </a>
@@ -160,12 +160,12 @@ const UrlDetailsPage = () => {
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
               <button
                 onClick={handleUpdateSlug}
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+                className="bg-cyan-600 text-white px-4 py-2 rounded-r-md hover:bg-cyan-700 focus:outline-none disabled:opacity-50"
               >
                 Save
               </button>
@@ -198,7 +198,7 @@ const UrlDetailsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gray-50 p-4 rounded-md">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Visits</h3>
-            <p className="text-2xl font-bold text-blue-600">{currentUrl.visits}</p>
+            <p className="text-2xl font-bold text-cyan-600">{currentUrl.visits}</p>
           </div>
           <div className="bg-gray-50 p-4 rounded-md">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Created</h3>

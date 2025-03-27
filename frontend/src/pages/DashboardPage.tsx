@@ -69,15 +69,15 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-medium text-gray-700 mb-2">Total URLs</h3>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalUrls}</p>
+            <p className="text-3xl font-bold text-cyan-600">{stats.totalUrls}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-medium text-gray-700 mb-2">Total Visits</h3>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalVisits}</p>
+            <p className="text-3xl font-bold text-cyan-600">{stats.totalVisits}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-medium text-gray-700 mb-2">Average Visits</h3>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-cyan-600">
               {stats.totalUrls > 0 ? Math.round(stats.totalVisits / stats.totalUrls) : 0}
             </p>
           </div>
@@ -91,7 +91,7 @@ const DashboardPage = () => {
             
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
               </div>
             ) : urls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -123,13 +123,13 @@ const DashboardPage = () => {
                     {urls.map((url) => (
                       <tr key={url.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[200px]">
-                          <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                          <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:text-cyan-600">
                             {url.originalUrl}
                           </a>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center">
-                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline mr-2">
+                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline mr-2">
                               {url.slug}
                             </a>
                             <button
@@ -150,7 +150,7 @@ const DashboardPage = () => {
                           {new Date(url.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link to={`/urls/${url.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
+                          <Link to={`/urls/${url.id}`} className="text-cyan-600 hover:text-cyan-900 mr-3">
                             Details
                           </Link>
                           <button
@@ -183,7 +183,7 @@ const DashboardPage = () => {
                   value={originalUrl}
                   onChange={(e) => setOriginalUrl(e.target.value)}
                   placeholder="https://example.com/long/url"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   required
                 />
               </div>
@@ -194,7 +194,7 @@ const DashboardPage = () => {
                   id="customSlugToggle"
                   checked={showCustomSlug}
                   onChange={() => setShowCustomSlug(!showCustomSlug)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
                 />
                 <label htmlFor="customSlugToggle" className="ml-2 block text-sm text-gray-700">
                   Use custom slug
@@ -212,7 +212,7 @@ const DashboardPage = () => {
                     value={customSlug}
                     onChange={(e) => setCustomSlug(e.target.value)}
                     placeholder="my-custom-slug"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Leave empty for a randomly generated slug.
@@ -223,7 +223,7 @@ const DashboardPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+                className="w-full bg-cyan-600 text-white py-2 px-4 rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Creating...' : 'Create Short URL'}
               </button>
@@ -238,7 +238,7 @@ const DashboardPage = () => {
                   <li key={url.id} className="border-b border-gray-100 pb-2 last:border-b-0 last:pb-0">
                     <div className="flex justify-between items-center">
                       <div className="truncate max-w-[180px]">
-                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline">
                           {url.slug}
                         </a>
                       </div>

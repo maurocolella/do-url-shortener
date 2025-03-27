@@ -5,7 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      textColor: {
+        'tooltip-link': '#0ea5e9', // sky-500
+        'tooltip-link-hover': '#38bdf8', // sky-400
+      },
+    },
   },
   plugins: [],
 }
