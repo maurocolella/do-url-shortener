@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -45,10 +45,16 @@ export class UrlService {
     
     // Use anonymous user ID if no user provided
     const userId = user?.id || '00000000-0000-0000-0000-000000000000';
+    const isAnonymousUser = userId === '00000000-0000-0000-0000-000000000000';
     
     // Generate or use custom alias
     let alias: string;
     if (customSlug) {
+      // Prevent anonymous users from using custom slugs
+      if (isAnonymousUser) {
+        throw new UnauthorizedException('You must be logged in to use custom slugs');
+      }
+      
       // Check if custom slug is already taken
       const existingAlias = await this.aliasRepository.findOne({ where: { alias: customSlug } });
       if (existingAlias) {
@@ -123,6 +129,12 @@ export class UrlService {
 
   async update(id: string, updateUrlDto: UpdateUrlDto, userId?: string): Promise<UrlEntity> {
     const url = await this.findOne(id, userId);
+    
+    // Prevent anonymous users from updating URLs with custom slugs
+    const isAnonymousUser = userId === '00000000-0000-0000-0000-000000000000';
+    if (isAnonymousUser && updateUrlDto.slug) {
+      throw new UnauthorizedException('You must be logged in to update URLs with custom slugs');
+    }
     
     if (updateUrlDto.slug && updateUrlDto.slug !== url.slug) {
       // Check if new slug is already taken
@@ -214,7 +226,7 @@ export class UrlService {
     return url.originalUrl;
   }
 
-  private async incrementVisits(slug: string): Promise<void> {
+  async incrementVisits(slug: string): Promise<void> {
     // Increment in urls table
     await this.urlRepository.increment({ slug }, 'visits', 1);
     

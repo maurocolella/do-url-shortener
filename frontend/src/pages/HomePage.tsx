@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 import { AppDispatch, RootState } from '../store';
 import { createUrl } from '../store/slices/urlSlice';
 
@@ -8,8 +9,41 @@ const HomePage = () => {
   const [url, setUrl] = useState('');
   const [customSlug, setCustomSlug] = useState('');
   const [showCustomSlug, setShowCustomSlug] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { loading, currentUrl } = useSelector((state: RootState) => state.url);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleTooltipShow = () => {
+    if (!isAuthenticated) {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+        tooltipTimeoutRef.current = null;
+      }
+      setShowTooltip(true);
+    }
+  };
+
+  const handleTooltipHide = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+    
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setShowTooltip(false);
+      tooltipTimeoutRef.current = null;
+    }, 300); // 300ms delay before hiding
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,17 +98,38 @@ const HomePage = () => {
             />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center relative">
             <input
               type="checkbox"
               id="customSlug"
               checked={showCustomSlug}
-              onChange={() => setShowCustomSlug(!showCustomSlug)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              onChange={() => isAuthenticated && setShowCustomSlug(!showCustomSlug)}
+              disabled={!isAuthenticated}
+              className={`h-4 w-4 focus:ring-blue-500 border-gray-300 rounded ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'text-blue-600'}`}
+              onMouseEnter={handleTooltipShow}
+              onMouseLeave={handleTooltipHide}
             />
-            <label htmlFor="customSlug" className="ml-2 block text-sm text-gray-700">
+            <label 
+              htmlFor="customSlug" 
+              className={`ml-2 block text-sm ${!isAuthenticated ? 'text-gray-500' : 'text-gray-700'}`}
+              onMouseEnter={handleTooltipShow}
+              onMouseLeave={handleTooltipHide}
+            >
               Use custom slug
             </label>
+            {showTooltip && !isAuthenticated && (
+              <div 
+                className="absolute left-0 bottom-8 bg-gray-800 text-white text-xs rounded py-1 px-2 w-64 z-10"
+                onMouseEnter={handleTooltipShow}
+                onMouseLeave={handleTooltipHide}
+              >
+                <div className="absolute left-2 bottom-0 transform translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+                Custom slugs are only available for registered users. 
+                <Link to="/register" className="text-blue-300 hover:text-blue-200 ml-1">
+                  Sign up now
+                </Link>
+              </div>
+            )}
           </div>
 
           {showCustomSlug && (
