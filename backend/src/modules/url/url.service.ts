@@ -47,6 +47,69 @@ export class UrlService {
     const userId = user?.id || '00000000-0000-0000-0000-000000000000';
     const isAnonymousUser = userId === '00000000-0000-0000-0000-000000000000';
     
+    // Check if this user has already shortened this URL
+    const existingAlias = await this.aliasRepository.findOne({
+      where: {
+        userId,
+        canonicalUrl: { id: canonicalUrl.id }
+      },
+      relations: ['canonicalUrl']
+    });
+    
+    if (existingAlias) {
+      // If a custom slug is requested but the user already has a different alias
+      if (customSlug && existingAlias.alias !== customSlug) {
+        // Only allow changing if the new custom slug is not taken
+        const customSlugExists = await this.aliasRepository.findOne({ where: { alias: customSlug } });
+        if (customSlugExists) {
+          throw new ConflictException(`Alias '${customSlug}' is already in use`);
+        }
+        
+        // Update the existing alias to use the custom slug
+        existingAlias.alias = customSlug;
+        await this.aliasRepository.save(existingAlias);
+        
+        // Update the URL entity as well
+        const existingUrl = await this.urlRepository.findOne({ 
+          where: { 
+            originalUrl: normalizedUrl,
+            userId 
+          } 
+        });
+        
+        if (existingUrl) {
+          existingUrl.slug = customSlug;
+          const updatedUrl = await this.urlRepository.save(existingUrl);
+          
+          // Update the cache
+          await this.cacheUrl(customSlug, normalizedUrl);
+          
+          return updatedUrl;
+        }
+      } else {
+        // Return the existing URL entity
+        const existingUrl = await this.urlRepository.findOne({ 
+          where: { 
+            slug: existingAlias.alias,
+            userId 
+          } 
+        });
+        
+        if (existingUrl) {
+          return existingUrl;
+        }
+        
+        // If URL entity doesn't exist but alias does, create a new URL entity
+        const newUrl = this.urlRepository.create({
+          slug: existingAlias.alias,
+          originalUrl: normalizedUrl,
+          userId,
+        });
+        
+        return this.urlRepository.save(newUrl);
+      }
+    }
+    
     // Generate or use custom alias
     let alias: string;
     if (customSlug) {
@@ -56,8 +119,8 @@ export class UrlService {
       }
       
       // Check if custom slug is already taken
-      const existingAlias = await this.aliasRepository.findOne({ where: { alias: customSlug } });
-      if (existingAlias) {
+      const existingCustomAlias = await this.aliasRepository.findOne({ where: { alias: customSlug } });
+      if (existingCustomAlias) {
         throw new ConflictException(`Alias '${customSlug}' is already in use`);
       }
       alias = customSlug;
