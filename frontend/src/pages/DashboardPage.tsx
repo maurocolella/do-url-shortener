@@ -56,6 +56,17 @@ const DashboardPage = () => {
     toast.success('URL copied to clipboard!');
   };
 
+  const handleUrlClick = (url, event) => {
+    // Find the visit count element and update it optimistically
+    const row = event.target.closest('tr');
+    if (row) {
+      const visitCell = row.querySelector('td:nth-child(3)');
+      if (visitCell) {
+        visitCell.textContent = (parseInt(visitCell.textContent) + 1).toString();
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -123,13 +134,13 @@ const DashboardPage = () => {
                     {urls.map((url) => (
                       <tr key={url.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[200px]">
-                          <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:text-cyan-600">
+                          <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="black-link">
                             {url.originalUrl}
                           </a>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center">
-                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline mr-2">
+                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => handleUrlClick(url, e)} className="text-cyan-600 hover:underline mr-2">
                               {url.slug}
                             </a>
                             <button
