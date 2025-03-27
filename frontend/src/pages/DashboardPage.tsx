@@ -57,7 +57,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
         <p className="text-gray-600">
@@ -91,7 +91,7 @@ const DashboardPage = () => {
             
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+                <div className="rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
               </div>
             ) : urls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">

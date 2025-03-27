@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './store';
 import { fetchCurrentUser } from './store/slices/authSlice';
+import { AnimatePresence } from 'motion/react';
 
 // Layout components
 import Layout from './components/Layout';
@@ -23,6 +24,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, loading, token } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
 
   useEffect(() => {
     if (token) {
@@ -39,24 +41,30 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        {/* Public routes */}
-        <Route index element={<HomePage />} />
-        <Route path="login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} />
-        <Route path="register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />} />
-        <Route path="auth/callback" element={<AuthCallbackPage />} />
-        
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="urls/:id" element={<UrlDetailsPage />} />
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname + location.search}>
+        <Route path="/" element={<Layout />}>
+          {/* Public routes */}
+          <Route index element={<HomePage />} />
+          <Route path="login" element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+          } />
+          <Route path="register" element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+          } />
+          <Route path="auth/callback" element={<AuthCallbackPage />} />
+          
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="urls/:id" element={<UrlDetailsPage />} />
+          </Route>
+          
+          {/* 404 route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
-        
-        {/* 404 route */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+      </Routes>
+    </AnimatePresence>
   );
 }
 

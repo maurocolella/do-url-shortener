@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { createUrl } from '../store/slices/urlSlice';
+import { toast } from 'react-toastify';
 
 const HomePage = () => {
   const [url, setUrl] = useState('');
@@ -11,11 +11,11 @@ const HomePage = () => {
   const [showCustomSlug, setShowCustomSlug] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { loading, currentUrl } = useSelector((state: RootState) => state.url);
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  
   const dispatch = useDispatch<AppDispatch>();
+  const { currentUrl, loading, error } = useSelector((state: RootState) => state.url);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (tooltipTimeoutRef.current) {
@@ -24,58 +24,53 @@ const HomePage = () => {
     };
   }, []);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
+
+    const urlData = {
+      originalUrl: url,
+      ...(showCustomSlug && customSlug ? { customSlug } : {})
+    };
+
+    dispatch(createUrl(urlData));
+  };
+
   const handleTooltipShow = () => {
     if (!isAuthenticated) {
+      setShowTooltip(true);
       if (tooltipTimeoutRef.current) {
         clearTimeout(tooltipTimeoutRef.current);
-        tooltipTimeoutRef.current = null;
       }
-      setShowTooltip(true);
     }
   };
 
   const handleTooltipHide = () => {
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-    }
-    
-    tooltipTimeoutRef.current = setTimeout(() => {
-      setShowTooltip(false);
-      tooltipTimeoutRef.current = null;
-    }, 300); // 300ms delay before hiding
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!url) {
-      toast.error('Please enter a URL');
-      return;
-    }
-
-    try {
-      await dispatch(createUrl({ 
-        originalUrl: url,
-        customSlug: customSlug || undefined
-      })).unwrap();
-      
-      toast.success('URL shortened successfully!');
-    } catch (error: any) {
-      toast.error(error || 'Failed to shorten URL');
+    if (!isAuthenticated) {
+      tooltipTimeoutRef.current = setTimeout(() => {
+        setShowTooltip(false);
+      }, 300);
     }
   };
 
   const copyToClipboard = () => {
-    if (currentUrl?.shortUrl) {
-      navigator.clipboard.writeText(currentUrl.shortUrl);
-      toast.success('URL copied to clipboard!');
-    }
+    if (!currentUrl) return;
+    
+    navigator.clipboard.writeText(currentUrl.shortUrl)
+      .then(() => {
+        toast.success('URL copied to clipboard!');
+      })
+      .catch(() => {
+        toast.error('Failed to copy URL');
+      });
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-slate-800 mb-4">URL Shortener</h1>
+        <h1 className="text-4xl font-bold text-slate-800 mb-4">
+          URL Shortener
+        </h1>
         <p className="text-xl text-slate-600">
           Create short, easy-to-share links in seconds.
         </p>
@@ -185,7 +180,7 @@ const HomePage = () => {
         )}
       </div>
 
-      <div className="mt-16 grid md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16">
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,7 +190,7 @@ const HomePage = () => {
           <h3 className="text-xl font-semibold mb-2">Fast & Easy</h3>
           <p className="text-slate-600">Create short links in seconds without any registration.</p>
         </div>
-
+        
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -205,7 +200,7 @@ const HomePage = () => {
           <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
           <p className="text-slate-600">All links are secured with HTTPS and available 24/7.</p>
         </div>
-
+        
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
