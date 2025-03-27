@@ -13,7 +13,6 @@
     "test": "cypress run"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.6.1",
     "autoprefixer": "^10.4.21",
