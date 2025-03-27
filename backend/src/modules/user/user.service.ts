@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity, AuthProviderEnum } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { promisify } from 'util';
+
+// Promisify the scrypt function
+const scryptAsync = promisify(crypto.scrypt);
 
 @Injectable()
 export class UserService {
@@ -58,11 +62,30 @@ export class UserService {
       return false;
     }
     
-    return bcrypt.compare(password, user.password);
+    // Split the stored password into salt and hash
+    const [salt, storedHash] = user.password.split(':');
+    
+    // Hash the input password with the same salt
+    const hash = await this.hashWithSalt(password, salt);
+    
+    // Compare the hashes
+    return storedHash === hash;
   }
 
   private async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt();
-    return bcrypt.hash(password, salt);
+    // Generate a random salt
+    const salt = crypto.randomBytes(16).toString('hex');
+    
+    // Hash the password with the salt
+    const hash = await this.hashWithSalt(password, salt);
+    
+    // Return salt and hash concatenated
+    return `${salt}:${hash}`;
+  }
+  
+  private async hashWithSalt(password: string, salt: string): Promise<string> {
+    // Use scrypt with N=16384, r=8, p=1, keylen=64
+    const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+    return derivedKey.toString('hex');
   }
 }
