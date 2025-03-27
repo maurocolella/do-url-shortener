@@ -26,6 +26,7 @@ export default () => ({
   
   url: {
     domain: process.env.URL_DOMAIN || 'http://localhost:3000',
+    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
     slugLength: parseInt(process.env.SLUG_LENGTH || '6', 10),
   },
   

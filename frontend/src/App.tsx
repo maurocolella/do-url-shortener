@@ -60,7 +60,8 @@ function App() {
             <Route path="urls/:id" element={<UrlDetailsPage />} />
           </Route>
           
-          {/* 404 route */}
+          {/* 404 routes */}
+          <Route path="404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
