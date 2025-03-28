@@ -171,11 +171,14 @@ url-shortener/
 
 ## URL Normalization
 
-The application includes robust URL normalization to ensure consistency when handling URLs. This prevents duplicate entries for URLs that are semantically identical but syntactically different. Normalization handles the following edge cases:
+The application includes robust URL normalization to ensure consistency when handling URLs. This prevents duplicate entries for URLs that are semantically identical but syntactically different. The normalization logic is implemented in both the frontend and backend with nearly identical code, which could be extracted to a shared library in the future.
+
+Normalization handles the following edge cases:
 
 ### Protocol Handling
 - Adding `https://` protocol if missing
 - Converting scheme to lowercase
+- **Preserving protocol differences**: `http://` and `https://` URLs are treated as different URLs for security and accuracy reasons
 
 ### Path Handling
 - Converting path to lowercase for case insensitivity
@@ -203,11 +206,24 @@ The application includes robust URL normalization to ensure consistency when han
 - Maintaining port numbers in URLs
 - Preserving username and password components in URLs
 
+### Domain Handling
+- Converting hostnames to lowercase
+- **Treating www and non-www as different URLs**: The application preserves subdomain differences (e.g., `www.example.com` and `example.com` are treated as different URLs) to respect potential DNS configurations and maintain precise behavior
+
 ### Error Handling
 - Graceful handling of invalid URLs
 - Proper handling of null or undefined inputs
 
-This comprehensive approach ensures that URLs like `https://www.google.com/?` and `https://www.google.com/` are normalized to the same URL, preventing duplicate entries and improving the user experience.
+This comprehensive approach ensures that URLs like `https://example.com/?` and `https://example.com/` are normalized to the same URL, preventing duplicate entries and improving the user experience.
+
+## Caveats
+
+⚠️ Currently, Google Auth and local accounts are handled separately. If an email is already registered locally, attempting Google sign-in will result in a clear error message. Identity linking is outside the current scope but would be a natural next step.
+
+⚠️ The URL shortener intentionally maintains separation between certain URL variations that might be considered identical in some contexts:
+- HTTP vs HTTPS URLs are treated as distinct URLs, preserving security context
+- Domain variations (e.g., www.example.com vs example.com) are kept separate to maintain precision and respect potential DNS configurations
+- These design choices prioritize accuracy and prevent unintended redirects at the cost of occasional duplication
 
 ## API Documentation
 
