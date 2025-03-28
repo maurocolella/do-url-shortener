@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { AppDispatch, RootState } from '../store';
 import { fetchUrls, deleteUrl, createUrl, fetchStats } from '../store/slices/urlSlice';
+import Tooltip from '../components/Tooltip';
 
 const DashboardPage = () => {
   const [originalUrl, setOriginalUrl] = useState('');
@@ -102,7 +103,7 @@ const DashboardPage = () => {
             
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+                <div className="rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 animate-spin"></div>
               </div>
             ) : urls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -110,7 +111,7 @@ const DashboardPage = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -132,44 +133,61 @@ const DashboardPage = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {urls.map((url) => (
-                      <tr key={url.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[200px]">
-                          <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="black-link">
-                            {url.originalUrl}
-                          </a>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => handleUrlClick(url, e)} className="text-cyan-600 hover:underline mr-2">
-                              {url.slug}
+                      <tr key={url.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="truncate max-w-[200px]">
+                            <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="black-link hover:underline">
+                              {url.originalUrl}
                             </a>
-                            <button
-                              onClick={() => copyToClipboard(url.shortUrl)}
-                              className="text-gray-400 hover:text-gray-600"
-                              title="Copy to clipboard"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                              </svg>
-                            </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => handleUrlClick(url, e)} className="text-cyan-600 hover:underline mr-2 truncate">
+                              {url.slug}
+                            </a>
+                            <Tooltip content="Copy to clipboard" position="top">
+                              <button
+                                onClick={() => copyToClipboard(url.shortUrl)}
+                                className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
                           {url.visits}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-500">
                           {new Date(url.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link to={`/urls/${url.id}`} className="text-cyan-600 hover:text-cyan-900 mr-3">
-                            Details
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteUrl(url.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                        <td className="px-6 py-4 text-sm font-medium text-right">
+                          <div className="flex justify-end items-center space-x-3 h-full">
+                            <Tooltip content="View details" position="top">
+                              <Link 
+                                to={`/urls/${url.id}`} 
+                                className="text-cyan-600 hover:text-cyan-900"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </Link>
+                            </Tooltip>
+                            <Tooltip content="Delete URL" position="top">
+                              <button
+                                onClick={() => handleDeleteUrl(url.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </Tooltip>
+                          </div>
                         </td>
                       </tr>
                     ))}
