@@ -28,7 +28,7 @@ describe('Authentication', () => {
     cy.get('button').contains('Sign in').click();
     // Check for HTML5 validation message
     cy.get('input[type="email"]').then($input => {
-      expect($input[0].validationMessage).to.not.be.empty;
+      cy.wrap($input[0].validationMessage).should('not.be.empty');
     });
   });
 
@@ -37,7 +37,7 @@ describe('Authentication', () => {
     cy.get('button').contains('Sign up').click();
     // Check for HTML5 validation message
     cy.get('input[type="email"]').then($input => {
-      expect($input[0].validationMessage).to.not.be.empty;
+      cy.wrap($input[0].validationMessage).should('not.be.empty');
     });
   });
 

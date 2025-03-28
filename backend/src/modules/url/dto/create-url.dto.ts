@@ -1,4 +1,4 @@
-import { IsString, IsOptional, Matches, Validate } from 'class-validator';
+import { IsString, IsOptional, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { UrlNormalizer } from '../../../common/utils/url-normalizer.util';
 

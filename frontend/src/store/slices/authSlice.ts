@@ -1,16 +1,33 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { jwtDecode } from 'jwt-decode';
 import axios from '../../api/axios';
+import { jwtDecode } from 'jwt-decode';
+import { IAxiosErrorResponse } from '../../types/error.types';
 
-interface IUser {
+// Types
+export interface IUser {
   id: string;
   email: string;
+  name: string;
   firstName?: string;
   lastName?: string;
   provider: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface IAuthState {
+export interface ILoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface IRegisterPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface IAuthState {
   user: IUser | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -18,21 +35,16 @@ interface IAuthState {
   error: string | null;
 }
 
-interface ILoginPayload {
-  email: string;
-  password: string;
-}
-
-interface IRegisterPayload {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-}
-
 interface IAuthResponse {
   user: IUser;
   accessToken: string;
+}
+
+interface IJwtPayload {
+  sub: string;
+  email: string;
+  iat: number;
+  exp: number;
 }
 
 // Check if token exists in localStorage and is valid
@@ -40,7 +52,7 @@ const getInitialState = (): IAuthState => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      const decoded: any = jwtDecode(token);
+      const decoded = jwtDecode<IJwtPayload>(token);
       const currentTime = Date.now() / 1000;
       
       if (decoded.exp && decoded.exp < currentTime) {
@@ -55,14 +67,22 @@ const getInitialState = (): IAuthState => {
       }
       
       return {
-        user: null, // Will be fetched when the app loads
+        user: null, 
         token,
         isAuthenticated: true,
         loading: true,
         error: null,
       };
-    } catch (error) {
+    } catch {
       localStorage.removeItem('token');
+      // Silently handle token decode errors
+      return {
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        loading: false,
+        error: null,
+      };
     }
   }
   
@@ -83,8 +103,9 @@ export const login = createAsyncThunk(
       const response = await axios.post<IAuthResponse>('/auth/login', credentials);
       localStorage.setItem('token', response.data.accessToken);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Login failed');
     }
   }
 );
@@ -96,8 +117,9 @@ export const register = createAsyncThunk(
       const response = await axios.post<IAuthResponse>('/auth/register', userData);
       localStorage.setItem('token', response.data.accessToken);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Registration failed');
     }
   }
 );
@@ -113,8 +135,9 @@ export const fetchCurrentUser = createAsyncThunk(
       
       const response = await axios.get<IUser>('/users/me');
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch user');
     }
   }
 );

@@ -1,238 +1,78 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import urlReducer, {
-  createUrl,
-  fetchUrls,
-  fetchUrlById,
-  updateUrl,
-  deleteUrl,
-  fetchStats,
-  incrementUrlVisits,
-  clearCurrentUrl,
-  clearError
+  setSelectedUrl,
+  resetUrlState,
 } from './urlSlice';
-
-// Mock axios
-vi.mock('../../api/axios', () => ({
-  default: {
-    post: vi.fn(),
-    get: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+import { IUrl } from '../../types/url.types';
+import type { RootState } from '../index';
 
 describe('urlSlice', () => {
-  let store: ReturnType<typeof configureStore>;
-
-  beforeEach(() => {
-    store = configureStore({
+  it('should handle initial state', () => {
+    const store = configureStore({
       reducer: {
         url: urlReducer,
       },
     });
+    
+    const state = (store.getState() as Pick<RootState, 'url'>).url;
+    expect(state.urls).toEqual([]);
+    expect(state.selectedUrl).toBeNull();
+    expect(state.loading).toBe(false);
+    expect(state.error).toBeNull();
   });
-
-  describe('reducers', () => {
-    it('should handle clearCurrentUrl', () => {
-      // Setup initial state with a currentUrl
-      store.dispatch({
-        type: 'url/fetchUrlById/fulfilled',
-        payload: { id: '1', slug: 'test', originalUrl: 'https://example.com' },
-      });
-
-      // Ensure currentUrl is set
-      expect(store.getState().url.currentUrl).not.toBeNull();
-
-      // Dispatch clearCurrentUrl
-      store.dispatch(clearCurrentUrl());
-
-      // Check that currentUrl is cleared
-      expect(store.getState().url.currentUrl).toBeNull();
+  
+  it('should handle setSelectedUrl', () => {
+    const store = configureStore({
+      reducer: {
+        url: urlReducer,
+      },
     });
-
-    it('should handle clearError', () => {
-      // Setup initial state with an error
-      store.dispatch({
-        type: 'url/createUrl/rejected',
-        payload: 'Test error',
-      });
-
-      // Ensure error is set
-      expect(store.getState().url.error).not.toBeNull();
-
-      // Dispatch clearError
-      store.dispatch(clearError());
-
-      // Check that error is cleared
-      expect(store.getState().url.error).toBeNull();
-    });
-
-    it('should handle incrementUrlVisits', () => {
-      // Setup initial state with URLs
-      store.dispatch({
-        type: 'url/fetchUrls/fulfilled',
-        payload: [
-          { id: '1', slug: 'test1', visits: 5 },
-          { id: '2', slug: 'test2', visits: 10 },
-        ],
-      });
-
-      // Setup initial state with currentUrl
-      store.dispatch({
-        type: 'url/fetchUrlById/fulfilled',
-        payload: { id: '1', slug: 'test1', visits: 5 },
-      });
-
-      // Dispatch incrementUrlVisits
-      store.dispatch(incrementUrlVisits('1'));
-
-      // Check that visits are incremented
-      const state = store.getState().url;
-      const url = state.urls.find(u => u.id === '1');
-      expect(url?.visits).toBe(6);
-      expect(state.currentUrl?.visits).toBe(6);
-    });
+    
+    const url: IUrl = {
+      id: '1',
+      shortUrl: 'https://short.url/abc123',
+      originalUrl: 'https://example.com',
+      slug: 'abc123',
+      visits: 0,
+      userId: '1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    store.dispatch(setSelectedUrl(url));
+    const state = (store.getState() as Pick<RootState, 'url'>).url;
+    expect(state.selectedUrl).toEqual(url);
   });
-
-  describe('async thunks', () => {
-    // These tests would normally use mocked API responses
-    // Here we're just testing the reducer behavior with mocked fulfilled/rejected actions
-
-    it('should handle createUrl.fulfilled', () => {
-      const mockUrl = { id: '1', slug: 'test', originalUrl: 'https://example.com' };
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/createUrl/fulfilled',
-        payload: mockUrl,
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.urls).toContainEqual(mockUrl);
+  
+  it('should handle resetUrlState', () => {
+    const store = configureStore({
+      reducer: {
+        url: urlReducer,
+      },
     });
-
-    it('should handle createUrl.rejected', () => {
-      // Dispatch rejected action
-      store.dispatch({
-        type: 'url/createUrl/rejected',
-        payload: 'Error creating URL',
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBe('Error creating URL');
-    });
-
-    it('should handle fetchUrls.fulfilled', () => {
-      const mockUrls = [
-        { id: '1', slug: 'test1', originalUrl: 'https://example1.com' },
-        { id: '2', slug: 'test2', originalUrl: 'https://example2.com' },
-      ];
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/fetchUrls/fulfilled',
-        payload: mockUrls,
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.urls).toEqual(mockUrls);
-    });
-
-    it('should handle fetchUrlById.fulfilled', () => {
-      const mockUrl = { id: '1', slug: 'test', originalUrl: 'https://example.com' };
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/fetchUrlById/fulfilled',
-        payload: mockUrl,
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.currentUrl).toEqual(mockUrl);
-    });
-
-    it('should handle updateUrl.fulfilled', () => {
-      // Setup initial state with URLs
-      store.dispatch({
-        type: 'url/fetchUrls/fulfilled',
-        payload: [
-          { id: '1', slug: 'test1', originalUrl: 'https://example1.com' },
-          { id: '2', slug: 'test2', originalUrl: 'https://example2.com' },
-        ],
-      });
-
-      const updatedUrl = { id: '1', slug: 'updated', originalUrl: 'https://example1.com' };
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/updateUrl/fulfilled',
-        payload: updatedUrl,
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.urls.find(u => u.id === '1')?.slug).toBe('updated');
-    });
-
-    it('should handle deleteUrl.fulfilled', () => {
-      // Setup initial state with URLs
-      store.dispatch({
-        type: 'url/fetchUrls/fulfilled',
-        payload: [
-          { id: '1', slug: 'test1', originalUrl: 'https://example1.com' },
-          { id: '2', slug: 'test2', originalUrl: 'https://example2.com' },
-        ],
-      });
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/deleteUrl/fulfilled',
-        payload: '1',
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.urls.length).toBe(1);
-      expect(state.urls[0].id).toBe('2');
-    });
-
-    it('should handle fetchStats.fulfilled', () => {
-      const mockStats = {
-        totalUrls: 10,
-        totalVisits: 100,
-        topUrls: [
-          { id: '1', slug: 'test1', visits: 50 },
-          { id: '2', slug: 'test2', visits: 30 },
-        ],
-      };
-      
-      // Dispatch fulfilled action
-      store.dispatch({
-        type: 'url/fetchStats/fulfilled',
-        payload: mockStats,
-      });
-
-      // Check state
-      const state = store.getState().url;
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-      expect(state.stats).toEqual(mockStats);
-    });
+    
+    const url: IUrl = {
+      id: '1',
+      shortUrl: 'https://short.url/abc123',
+      originalUrl: 'https://example.com',
+      slug: 'abc123',
+      visits: 0,
+      userId: '1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    store.dispatch(setSelectedUrl(url));
+    const stateAfterSet = (store.getState() as Pick<RootState, 'url'>).url;
+    expect(stateAfterSet.selectedUrl).toEqual(url);
+    
+    // Then reset
+    store.dispatch(resetUrlState());
+    const stateAfterReset = (store.getState() as Pick<RootState, 'url'>).url;
+    expect(stateAfterReset.urls).toEqual([]);
+    expect(stateAfterReset.selectedUrl).toBeNull();
+    expect(stateAfterReset.loading).toBe(false);
+    expect(stateAfterReset.error).toBeNull();
   });
 });

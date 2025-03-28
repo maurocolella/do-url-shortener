@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
-import { AppDispatch, RootState } from '../store';
+import { RootState, AppDispatch } from '../store';
 import { register } from '../store/slices/authSlice';
+import { toast } from 'react-toastify';
 import { GoogleIcon } from '../components/icons';
 
 const RegisterPage = () => {
@@ -19,6 +19,11 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -28,8 +33,9 @@ const RegisterPage = () => {
       await dispatch(register({ email, password, firstName, lastName })).unwrap();
       toast.success('Registration successful!');
       navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error || 'Registration failed');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+      toast.error(errorMessage);
     }
   };
 

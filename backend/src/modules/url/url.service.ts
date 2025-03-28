@@ -128,7 +128,7 @@ export class UrlService {
     });
     
     // Save to database
-    const savedAlias = await this.aliasRepository.save(aliasEntity);
+    await this.aliasRepository.save(aliasEntity);
     
     // Cache the URL mapping
     await this.cacheUrl(slug, normalizedUrl);

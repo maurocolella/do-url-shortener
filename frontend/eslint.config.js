@@ -23,6 +23,26 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Enforce no unused variables
+      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
+  // Special rules for test files
+  {
+    files: ['**/*.test.{ts,tsx}', '**/cypress/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // Special rules for utility files
+  {
+    files: ['**/utils/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+    },
+  }
 )

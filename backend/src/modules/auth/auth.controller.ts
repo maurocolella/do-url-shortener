@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpStatus } from '@nestjs/common';
+import { 
+  Controller, 
+  Post, 
+  Body, 
+  Get, 
+  UseGuards, 
+  Req, 
+  Res
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -40,7 +48,8 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
-    const { user, accessToken } = await this.authService.googleLogin(req.user);
+     
+    const { accessToken } = await this.authService.googleLogin(req.user);
     
     const frontendUrl = this.configService.get<string>('frontend.url');
     

@@ -47,7 +47,7 @@ async function bootstrap() {
   // Set up the database before starting the application
   try {
     await setupDatabase(dataSource);
-  } catch (error) {
+  } catch {
     console.error('Failed to set up the database. Exiting application.');
     process.exit(1);
   }
@@ -67,8 +67,16 @@ async function bootstrap() {
   );
   
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  const logger = new Logger('Bootstrap');
+  
+  try {
+    await app.listen(port);
+    logger.log(`Application is running on: ${await app.getUrl()}`);
+    logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  } catch {
+    logger.error('Failed to start the application');
+    process.exit(1);
+  }
 }
 
 bootstrap();

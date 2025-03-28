@@ -44,19 +44,6 @@ const UrlDetailsPage = () => {
       .catch(() => toast.error('Failed to copy URL'));
   };
 
-  const handleUrlClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    // Prevent default to handle the click manually
-    event.preventDefault();
-    
-    if (currentUrl) {
-      // Dispatch action to increment visit count in the store
-      dispatch(incrementUrlVisits(currentUrl.id));
-      
-      // Open the URL in a new tab
-      window.open(shortUrl, '_blank');
-    }
-  };
-
   if (loading && !currentUrl) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -76,6 +63,19 @@ const UrlDetailsPage = () => {
 
   // Use the backend URL for the short URL
   const shortUrl = `${baseURL}/${currentUrl.slug}`;
+
+  const handleUrlClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Prevent default to handle the click manually
+    event.preventDefault();
+    
+    if (currentUrl) {
+      // Dispatch action to increment visit count in the store
+      dispatch(incrementUrlVisits(currentUrl.id));
+      
+      // Open the URL in a new tab
+      window.open(shortUrl, '_blank');
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -111,6 +111,7 @@ const UrlDetailsPage = () => {
               >
                 {shortUrl}
               </a>
+
               <Tooltip content="Copy to clipboard" position="top">
                 <button
                   onClick={() => copyToClipboard(shortUrl)}
@@ -143,6 +144,7 @@ const UrlDetailsPage = () => {
         </div>
       </div>
 
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">Visit Statistics</h2>
@@ -153,6 +155,7 @@ const UrlDetailsPage = () => {
           </div>
         </div>
       </div>
+
 
       <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
-import { createUrl } from '../store/slices/urlSlice';
+import { createUrl, clearCurrentUrl } from '../store/slices/urlSlice';
 import { toast } from 'react-toastify';
 import { LightningIcon, ShieldIcon, ChartIcon } from '../components/icons'; // Import the icon components
 
@@ -17,6 +17,11 @@ const HomePage = () => {
   const { currentUrl, loading } = useSelector((state: RootState) => state.url);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+  // Clear currentUrl when component mounts
+  useEffect(() => {
+    dispatch(clearCurrentUrl());
+  }, [dispatch]);
+
   useEffect(() => {
     return () => {
       if (tooltipTimeoutRef.current) {
@@ -24,6 +29,14 @@ const HomePage = () => {
       }
     };
   }, []);
+
+  // Reset form after successful URL creation
+  useEffect(() => {
+    if (currentUrl && !loading) {
+      setUrl('');
+      setCustomSlug('');
+    }
+  }, [currentUrl, loading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,18 +80,18 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12" data-testid="homepage-container">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-slate-800 mb-4">
+        <h1 className="text-4xl font-bold text-slate-800 mb-4" data-testid="homepage-title">
           URL Shortener
         </h1>
-        <p className="text-xl text-slate-600">
+        <p className="text-xl text-slate-600" data-testid="homepage-subtitle">
           Create short, easy-to-share links in seconds.
         </p>
       </div>
 
-      <div className="bg-white p-8 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-white p-8 rounded-lg shadow-md" data-testid="url-shortener-form-container">
+        <form onSubmit={handleSubmit} className="space-y-6" data-testid="url-shortener-form">
           <div>
             <label htmlFor="url" className="block text-sm font-medium text-slate-700 mb-1">
               Enter your long URL
@@ -86,6 +99,7 @@ const HomePage = () => {
             <input
               type="url"
               id="url"
+              data-testid="url-input"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/very/long/url/that/needs/shortening"
@@ -98,6 +112,7 @@ const HomePage = () => {
             <input
               type="checkbox"
               id="customSlug"
+              data-testid="custom-slug-checkbox"
               checked={showCustomSlug}
               onChange={() => isAuthenticated && setShowCustomSlug(!showCustomSlug)}
               disabled={!isAuthenticated}
@@ -118,6 +133,7 @@ const HomePage = () => {
                 className="absolute left-0 bottom-8 bg-slate-800 text-white text-xs rounded py-1 px-2 w-64 z-10"
                 onMouseEnter={handleTooltipShow}
                 onMouseLeave={handleTooltipHide}
+                data-testid="custom-slug-tooltip"
               >
                 <div className="absolute left-2 bottom-0 transform translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800"></div>
                 Custom slugs are only available for registered users. 
@@ -129,13 +145,14 @@ const HomePage = () => {
           </div>
 
           {showCustomSlug && (
-            <div>
+            <div data-testid="custom-slug-container">
               <label htmlFor="slug" className="block text-sm font-medium text-slate-700 mb-1">
                 Custom slug (optional)
               </label>
               <input
                 type="text"
                 id="slug"
+                data-testid="custom-slug-input"
                 value={customSlug}
                 onChange={(e) => setCustomSlug(e.target.value)}
                 placeholder="my-custom-slug"
@@ -149,6 +166,7 @@ const HomePage = () => {
 
           <button
             type="submit"
+            data-testid="shorten-button"
             disabled={loading}
             className="w-full bg-cyan-600 text-white py-3 px-4 rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
           >
@@ -157,53 +175,55 @@ const HomePage = () => {
         </form>
 
         {currentUrl && (
-          <div className="mt-8 p-4 bg-slate-50 rounded-md">
+          <div className="mt-8 p-4 bg-slate-50 rounded-md" data-testid="shortened-url-container">
             <h3 className="text-lg font-medium text-slate-800 mb-2">Your shortened URL:</h3>
             <div className="flex items-center">
               <input
                 type="text"
+                data-testid="shortened-url-output"
                 value={currentUrl.shortUrl}
                 readOnly
                 className="flex-grow px-4 py-2 border border-slate-300 rounded-l-md focus:outline-none"
               />
               <button
                 onClick={copyToClipboard}
+                data-testid="copy-url-button"
                 className="bg-cyan-600 text-white px-4 py-2 rounded-r-md hover:bg-cyan-700 focus:outline-none"
               >
                 Copy
               </button>
             </div>
             <div className="mt-2 text-sm text-slate-600">
-              <p>Original URL: {currentUrl.originalUrl}</p>
-              <p>Created: {new Date(currentUrl.createdAt).toLocaleString()}</p>
+              <p data-testid="original-url-display">Original URL: {currentUrl.originalUrl}</p>
+              <p data-testid="creation-date-display">Created: {new Date(currentUrl.createdAt).toLocaleString()}</p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mt-16" data-testid="features-section">
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
             <LightningIcon className="h-12 w-12 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Fast & Easy</h3>
-          <p className="text-slate-600">Create short links in seconds without any registration.</p>
+          <h3 className="text-xl font-semibold text-slate-800 mb-2">Lightning Fast</h3>
+          <p className="text-slate-600">Create shortened URLs in seconds with our optimized service.</p>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
-            <ShieldIcon className="h-12 w-12 mx-auto" style={{ minWidth: '48px' }} />
+            <ShieldIcon className="h-12 w-12 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Secure & Reliable</h3>
-          <p className="text-slate-600">All links are secured with HTTPS and available 24/7.</p>
+          <h3 className="text-xl font-semibold text-slate-800 mb-2">Secure Links</h3>
+          <p className="text-slate-600">All links are securely generated and tracked to protect your data.</p>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <div className="text-cyan-600 text-4xl mb-4">
             <ChartIcon className="h-12 w-12 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Detailed Analytics</h3>
-          <p className="text-slate-600">Track clicks and analyze traffic with our dashboard.</p>
+          <h3 className="text-xl font-semibold text-slate-800 mb-2">Detailed Analytics</h3>
+          <p className="text-slate-600">Track clicks and visitor information for your shortened URLs.</p>
         </div>
       </div>
     </div>

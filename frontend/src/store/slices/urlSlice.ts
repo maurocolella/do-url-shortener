@@ -1,38 +1,34 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from '../../api/axios';
+import { IUrl, ICreateUrlPayload, IUpdateUrlPayload, IUrlStats } from '../../types/url.types';
+import { IAxiosErrorResponse } from '../../types/error.types';
 import { UrlNormalizer } from '../../utils/url-normalizer';
-
-interface IUrl {
-  id: string;
-  slug: string;
-  originalUrl: string;
-  shortUrl: string;
-  visits: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface IUrlState {
   urls: IUrl[];
+  selectedUrl: IUrl | null;
   currentUrl: IUrl | null;
-  loading: boolean;
-  error: string | null;
   stats: {
     totalUrls: number;
     totalVisits: number;
     topUrls: IUrl[];
-  } | null;
+  };
+  loading: boolean;
+  error: string | null;
 }
 
-interface ICreateUrlPayload {
-  originalUrl: string;
-  customSlug?: string;
-}
-
-interface IUpdateUrlPayload {
-  id: string;
-  slug: string;
-}
+const initialState: IUrlState = {
+  urls: [],
+  selectedUrl: null,
+  currentUrl: null,
+  stats: {
+    totalUrls: 0,
+    totalVisits: 0,
+    topUrls: [],
+  },
+  loading: false,
+  error: null,
+};
 
 // Async thunks
 export const createUrl = createAsyncThunk(
@@ -41,8 +37,9 @@ export const createUrl = createAsyncThunk(
     try {
       const response = await axios.post<IUrl>('/urls', urlData);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create URL');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to create URL');
     }
   }
 );
@@ -53,8 +50,9 @@ export const fetchUrls = createAsyncThunk(
     try {
       const response = await axios.get<IUrl[]>('/urls');
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch URLs');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch URLs');
     }
   }
 );
@@ -65,8 +63,9 @@ export const fetchUrlById = createAsyncThunk(
     try {
       const response = await axios.get<IUrl>(`/urls/${id}`);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch URL');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch URL');
     }
   }
 );
@@ -77,8 +76,9 @@ export const updateUrl = createAsyncThunk(
     try {
       const response = await axios.put<IUrl>(`/urls/${id}`, { slug });
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update URL');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to update URL');
     }
   }
 );
@@ -89,8 +89,9 @@ export const deleteUrl = createAsyncThunk(
     try {
       await axios.delete(`/urls/${id}`);
       return id;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete URL');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to delete URL');
     }
   }
 );
@@ -99,10 +100,11 @@ export const fetchStats = createAsyncThunk(
   'url/fetchStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/urls/stats');
+      const response = await axios.get<IUrlStats>('/urls/stats');
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch stats');
+    } catch (error) {
+      const axiosError = error as IAxiosErrorResponse;
+      return rejectWithValue(axiosError.response?.data?.message || 'Failed to fetch stats');
     }
   }
 );
@@ -110,19 +112,22 @@ export const fetchStats = createAsyncThunk(
 // Slice
 const urlSlice = createSlice({
   name: 'url',
-  initialState: {
-    urls: [],
-    currentUrl: null,
-    loading: false,
-    error: null,
-    stats: null,
-  } as IUrlState,
+  initialState,
   reducers: {
-    clearCurrentUrl: (state) => {
-      state.currentUrl = null;
+    clearSelectedUrl: (state) => {
+      state.selectedUrl = null;
+    },
+    setSelectedUrl: (state, action: PayloadAction<IUrl>) => {
+      state.selectedUrl = action.payload;
+    },
+    resetUrlState: () => {
+      return initialState;
     },
     clearError: (state) => {
       state.error = null;
+    },
+    clearCurrentUrl: (state) => {
+      state.currentUrl = null;
     },
     incrementUrlVisits: (state, action: PayloadAction<string>) => {
       const urlId = action.payload;
@@ -141,9 +146,9 @@ const urlSlice = createSlice({
         }
       });
       
-      // Update in currentUrl if it points to the same normalized original URL
-      if (state.currentUrl && UrlNormalizer.normalize(state.currentUrl.originalUrl) === normalizedOriginalUrl) {
-        state.currentUrl.visits += 1;
+      // Update in selectedUrl if it points to the same normalized original URL
+      if (state.selectedUrl && UrlNormalizer.normalize(state.selectedUrl.originalUrl) === normalizedOriginalUrl) {
+        state.selectedUrl.visits += 1;
       }
       
       // Update in topUrls if present
@@ -188,7 +193,8 @@ const urlSlice = createSlice({
         state.urls.unshift(newUrl);
       }
       
-      // Update currentUrl
+      // Update selectedUrl and currentUrl
+      state.selectedUrl = newUrl;
       state.currentUrl = newUrl;
       
       // Update topUrls if stats exist
@@ -233,6 +239,7 @@ const urlSlice = createSlice({
     });
     builder.addCase(fetchUrlById.fulfilled, (state, action) => {
       state.loading = false;
+      state.selectedUrl = action.payload;
       state.currentUrl = action.payload;
     });
     builder.addCase(fetchUrlById.rejected, (state, action) => {
@@ -247,7 +254,7 @@ const urlSlice = createSlice({
     });
     builder.addCase(updateUrl.fulfilled, (state, action) => {
       state.loading = false;
-      state.currentUrl = action.payload;
+      state.selectedUrl = action.payload;
       state.urls = state.urls.map(url => 
         url.id === action.payload.id ? action.payload : url
       );
@@ -294,9 +301,9 @@ const urlSlice = createSlice({
       // Remove from urls array
       state.urls = state.urls.filter(url => url.id !== deletedId);
       
-      // Clear currentUrl if it's the deleted URL
-      if (state.currentUrl && state.currentUrl.id === deletedId) {
-        state.currentUrl = null;
+      // Clear selectedUrl if it's the deleted URL
+      if (state.selectedUrl && state.selectedUrl.id === deletedId) {
+        state.selectedUrl = null;
       }
     });
     builder.addCase(deleteUrl.rejected, (state, action) => {
@@ -320,5 +327,5 @@ const urlSlice = createSlice({
   },
 });
 
-export const { clearCurrentUrl, clearError, incrementUrlVisits } = urlSlice.actions;
+export const { clearSelectedUrl, setSelectedUrl, resetUrlState, clearError, clearCurrentUrl, incrementUrlVisits } = urlSlice.actions;
 export default urlSlice.reducer;

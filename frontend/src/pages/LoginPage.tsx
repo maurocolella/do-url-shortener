@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { AppDispatch, RootState } from '../store';
 import { login } from '../store/slices/authSlice';
+import { RootState } from '../store';
+import { AppDispatch } from '../store';
 import { GoogleIcon } from '../components/icons';
 
 const LoginPage = () => {
@@ -16,12 +17,18 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    
     try {
       await dispatch(login({ email, password })).unwrap();
       toast.success('Login successful!');
       navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error || 'Login failed');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      toast.error(errorMessage);
     }
   };
 

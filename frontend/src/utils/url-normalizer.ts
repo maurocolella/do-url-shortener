@@ -1,139 +1,167 @@
 /**
  * URL Normalization Utility
- * Provides functions to normalize URLs in the same way as the backend
+ * Provides functions to normalize URLs consistently with the backend
+ * 
+ * NOTE: This implementation should match the backend URL normalizer in
+ * backend/src/common/utils/url-normalizer.util.ts as closely as possible.
  */
 export class UrlNormalizer {
   /**
    * Normalizes a URL by:
-   * 1. Adding https:// if protocol is missing
-   * 2. Converting to lowercase
+   * 1. Adding https:// if protocol is missing (but preserves http:// if specified)
+   * 2. Converting hostname to lowercase
    * 3. Sorting query parameters
-   * 4. Removing trailing slashes
-   * 5. Preserving fragments (hash)
+   * 4. Removing trailing slashes from non-root paths
+   * 5. Adding trailing slashes to root paths
+   * 6. Preserving fragments (hash)
    * 
    * @param url - URL to normalize
    * @returns Normalized URL
    */
   public static normalize(url: string): string {
     try {
+      // If URL is empty, null, or undefined, return empty string
       if (!url) {
         return '';
       }
       
       // Check if URL is valid before attempting to add protocol
       // This avoids treating strings like "not a url" as valid URLs
-      if (!url.includes('.') && !url.match(/^(https?:\/\/|localhost)/i)) {
+      if (!this.isValidUrl(url)) {
+        // We're handling an invalid URL format
         return url;
       }
       
-      // Add protocol if missing
-      if (!url.includes('://')) {
-        url = `https://${url}`;
+      // Add protocol if missing (default to https)
+      let normalizedUrl = url;
+      if (!normalizedUrl.toLowerCase().startsWith('http://') && !normalizedUrl.toLowerCase().startsWith('https://')) {
+        normalizedUrl = `https://${normalizedUrl}`;
       }
       
-      // Parse URL
-      const parsedUrl = new URL(url);
+      // Parse the URL
+      const parsedUrl = new URL(normalizedUrl);
       
-      // Convert to lowercase (except query parameters and hash)
-      parsedUrl.protocol = parsedUrl.protocol.toLowerCase();
-      parsedUrl.host = parsedUrl.host.toLowerCase();
-      parsedUrl.pathname = parsedUrl.pathname.toLowerCase();
+      // Convert hostname to lowercase
+      parsedUrl.hostname = parsedUrl.hostname.toLowerCase();
       
-      // Handle empty query parameters - always remove '?' if there are no actual parameters
-      if (parsedUrl.search === '?' || parsedUrl.search === '') {
-        parsedUrl.search = '';
-      } else if (parsedUrl.search) {
-        const searchParams = new URLSearchParams(parsedUrl.search);
+      // Handle trailing slashes
+      let path = parsedUrl.pathname;
+      if (path.length > 1) {
+        // Remove trailing slashes for non-root paths
+        while (path.endsWith('/')) {
+          path = path.slice(0, -1);
+        }
+      } else if (path === '') {
+        // Add trailing slash for root domain with no path
+        path = '/';
+      }
+      
+      // Handle multiple leading slashes in the path
+      path = path.replace(/\/+/g, '/');
+      
+      // Extract and sort query parameters
+      const searchParams = new URLSearchParams(parsedUrl.search);
+      const paramEntries = Array.from(searchParams.entries());
+      
+      // Only include search if there are actual parameters
+      let queryString = '';
+      if (paramEntries.length > 0) {
+        // Sort parameters alphabetically
+        paramEntries.sort((a, b) => a[0].localeCompare(b[0]));
         
-        // If searchParams is empty, remove the search part
-        if (Array.from(searchParams.keys()).length === 0) {
-          parsedUrl.search = '';
-        } else {
-          const sortedParams = new URLSearchParams();
-          
-          // Get all parameter names and sort them
-          const paramNames = Array.from(searchParams.keys()).sort();
-          
-          // Add parameters in sorted order with proper handling of multiple values
-          for (const name of paramNames) {
-            // Skip empty parameter names
-            if (name.trim() === '') continue;
-            
-            // Get all values for this parameter and sort them
-            const values = searchParams.getAll(name).sort();
-            
-            // Append each value individually to avoid duplicating values
-            values.forEach(value => sortedParams.append(name, value));
+        // Rebuild query string
+        const sortedParams = new URLSearchParams();
+        for (const [key, value] of paramEntries) {
+          if (key) {
+            sortedParams.append(key, value);
           }
-          
-          // Replace search with sorted parameters
-          parsedUrl.search = sortedParams.toString() ? `?${sortedParams.toString()}` : '';
+        }
+        
+        queryString = sortedParams.toString();
+        if (queryString) {
+          queryString = `?${queryString}`;
         }
       }
       
-      // Handle trailing slashes consistently by removing them from all paths
-      // except for the root path, which should always have a trailing slash
-      if (parsedUrl.pathname !== '/') {
-        parsedUrl.pathname = parsedUrl.pathname.replace(/\/+$/, '');
+      // Build the result URL
+      let result = `${parsedUrl.protocol}//`;
+      
+      // Add auth if present
+      if (parsedUrl.username) {
+        result += encodeURIComponent(parsedUrl.username);
+        if (parsedUrl.password) {
+          result += `:${encodeURIComponent(parsedUrl.password)}`;
+        }
+        result += '@';
       }
       
-      // Root domain should have a trailing slash
-      if (parsedUrl.pathname === '') {
-        parsedUrl.pathname = '/';
+      // Add hostname
+      result += parsedUrl.hostname;
+      
+      // Add port if present
+      if (parsedUrl.port) {
+        result += `:${parsedUrl.port}`;
       }
       
-      // Generate the normalized URL string
-      return parsedUrl.toString();
-    } catch (error) {
+      // Add path
+      result += path;
+      
+      // Add trailing slash for root path if not already present
+      if ((path === '' || path === '/') && !result.endsWith('/')) {
+        result += '/';
+      }
+      
+      // Add query string if present
+      result += queryString;
+      
+      // Add hash if present
+      result += parsedUrl.hash;
+      
+      return result;
+    } catch {
       // If URL parsing fails, return the original URL
       return url;
     }
   }
-
+  
   /**
-   * Compares two URLs to check if they are equivalent after normalization
+   * Checks if two URLs are equivalent after normalization
    * 
    * @param url1 - First URL to compare
    * @param url2 - Second URL to compare
-   * @returns True if the normalized URLs are equivalent
+   * @returns True if URLs are equivalent, false otherwise
    */
   public static areEquivalent(url1: string, url2: string): boolean {
-    return this.normalize(url1) === this.normalize(url2);
+    const normalized1 = this.normalize(url1);
+    const normalized2 = this.normalize(url2);
+    return normalized1 === normalized2;
   }
-
+  
   /**
-   * Tests the URL normalizer with various URL formats including edge cases
-   * This is useful for debugging and verifying normalization behavior
+   * Checks if a string is a valid URL
    * 
-   * @returns An object with test results
+   * @param url - URL to check
+   * @returns True if URL is valid, false otherwise
    */
-  public static test(): { original: string, normalized: string }[] {
-    const testUrls = [
-      'example.com',
-      'https://example.com',
-      'https://example.com/',
-      'https://www.google.com/',
-      'https://www.google.com/?',
-      'https://www.google.com/?query=',
-      'https://www.google.com/?query=value',
-      'https://example.com/path',
-      'https://example.com/path/',
-      'https://example.com/path?',
-      'https://example.com/path?a=1&b=2',
-      'https://example.com/path?b=2&a=1',
-      'https://example.com/path/?a=1&b=2',
-      'https://example.com/path/?b=2&a=1',
-      'HTTPS://EXAMPLE.COM/path',
-      'https://example.com/PATH',
-      'https://example.com/path?A=1&B=2',
-      'https://example.com#fragment',
-      'https://example.com/#fragment',
-      'https://example.com/?#fragment',
-    ];
-    
-    return testUrls.map(url => ({
-      original: url,
-      normalized: this.normalize(url)
-    }));
+  private static isValidUrl(url: string): boolean {
+    try {
+      // If it already has a protocol, try to parse it directly
+      if (url.toLowerCase().startsWith('http://') || url.toLowerCase().startsWith('https://')) {
+        new URL(url);
+        return true;
+      }
+      
+      // Check if URL is valid before attempting to add protocol
+      // This avoids treating strings like "not a url" as valid URLs
+      if (!url.includes('.') && !url.match(/^(https?:\/\/|localhost)/i)) {
+        return false;
+      }
+      
+      // Otherwise, add a protocol and try to parse
+      new URL(`https://${url}`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
