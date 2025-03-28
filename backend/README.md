@@ -193,40 +193,40 @@ docker compose restart backend
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run in development mode
-npm run start:dev
+pnpm start:dev
 
 # Run in production mode
-npm run build
-npm run start:prod
+pnpm build
+pnpm start
 ```
 
 ### Database Migrations
 
 ```bash
 # Generate a migration
-npm run migration:generate -- -n MigrationName
+pnpm migration:generate -- -n MigrationName
 
 # Run migrations
-npm run migration:run
+pnpm migration:run
 
 # Revert migration
-npm run migration:revert
+pnpm migration:revert
 ```
 
 ## Testing
 
 ```bash
 # Unit tests
-npm run test
+pnpm test
 
 # E2E tests
-npm run test:e2e
+pnpm test:e2e
 
 # Test coverage
-npm run test:cov
+pnpm test:cov
 ```
 
 ## Code Structure
