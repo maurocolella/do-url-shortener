@@ -48,12 +48,22 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
-     
-    const { accessToken } = await this.authService.googleLogin(req.user);
+    try {
+      // Get frontend URL from config
+      const frontendUrl = this.configService.get<string>('url.frontendUrl');
+      
+      // Process login with the user information from Google
+      const { accessToken } = await this.authService.googleLogin(req.user);
     
-    const frontendUrl = this.configService.get<string>('frontend.url');
-    
-    // Redirect to frontend with token
-    return res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+      // Redirect to frontend with token
+      return res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}`);
+    } catch (error) {
+      // Get frontend URL from config
+      const frontendUrl = this.configService.get<string>('url.frontendUrl');
+      
+      // Handle any errors that occur during authentication
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      return res.redirect(`${frontendUrl}/auth/callback?error=auth_failed&message=${encodeURIComponent(errorMessage)}`);
+    }
   }
 }

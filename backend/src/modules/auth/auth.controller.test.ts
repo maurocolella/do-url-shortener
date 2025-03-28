@@ -19,7 +19,7 @@ const mockAuthService = () => ({
 // Mock ConfigService
 const mockConfigService = () => ({
   get: jest.fn((key: string) => {
-    if (key === 'frontend.url') return 'http://localhost:5173';
+    if (key === 'url.frontendUrl') return 'http://localhost:5173';
     return undefined;
   }),
 });
@@ -174,7 +174,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(authService.googleLogin).toHaveBeenCalledWith(mockReq.user);
-      expect(configService.get).toHaveBeenCalledWith('frontend.url');
+      expect(configService.get).toHaveBeenCalledWith('url.frontendUrl');
       expect(res.redirect).toHaveBeenCalledWith(
         'http://localhost:5173/auth/callback?token=test-token',
       );

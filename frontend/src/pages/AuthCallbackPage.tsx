@@ -13,11 +13,21 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
+    const error = params.get('error');
+    const message = params.get('message');
 
     if (token) {
       dispatch(setToken(token));
       toast.success('Authentication successful!');
       navigate('/dashboard');
+    } else if (error) {
+      // Display the error message from the backend if available
+      const errorMessage = message 
+        ? decodeURIComponent(message)
+        : 'Authentication failed. Please try again.';
+      
+      toast.error(errorMessage);
+      navigate('/login');
     } else {
       toast.error('Authentication failed. No token received.');
       navigate('/login');
