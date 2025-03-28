@@ -28,7 +28,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center text-xl font-bold text-cyan-600 hover:text-cyan-800">
               <LinkIcon className="h-6 w-6 mr-2" />
-              URL Shortener
+              Shortr
             </Link>
           </div>
 

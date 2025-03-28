@@ -83,7 +83,7 @@ const HomePage = () => {
     <div className="container mx-auto px-4 py-12" data-testid="homepage-container">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-slate-800 mb-4" data-testid="homepage-title">
-          URL Shortener
+          Shortr &bull; URL Shortener
         </h1>
         <p className="text-xl text-slate-600" data-testid="homepage-subtitle">
           Create short, easy-to-share links in seconds.
