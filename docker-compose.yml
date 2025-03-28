@@ -11,8 +11,8 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:3000/api
+    env_file:
+      - ./frontend/.env
     networks:
       - url-shortener-network
 
@@ -29,22 +29,11 @@ services:
     depends_on:
       - postgres
       - redis
+    env_file:
+      - ./backend/.env
     environment:
-      - NODE_ENV=development
-      - PORT=3000
       - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=url_shortener
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET=super-secret-jwt-key-for-development-only
-      - JWT_EXPIRES_IN=1d
-      - URL_DOMAIN=http://localhost:3000
-      - GOOGLE_CLIENT_ID=your-google-client-id
-      - GOOGLE_CLIENT_SECRET=your-google-client-secret
-      - GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
     networks:
       - url-shortener-network
 
