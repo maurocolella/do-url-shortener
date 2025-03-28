@@ -1,8 +1,9 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { logout } from '../store/slices/authSlice';
+import { LinkIcon, MenuIcon } from './icons';
 import Container from './Container';
 
 const Navbar = () => {
@@ -13,49 +14,52 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/');
+    navigate('/login');
+    setIsMenuOpen(false);
   };
 
   return (
     <nav className="bg-white shadow-md">
       <Container>
         <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-cyan-600 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                URL Shortener
-              </Link>
-            </div>
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center text-xl font-bold text-cyan-600 hover:text-cyan-800">
+              <LinkIcon className="h-6 w-6 mr-2" />
+              URL Shortener
+            </Link>
           </div>
 
           {/* Desktop menu */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600">
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
+                >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
                 >
                   Logout
                 </button>
-                <div className="px-3 py-2 rounded-md text-sm font-medium text-gray-700">
+                <span className="px-3 py-2 text-sm font-medium text-gray-500">
                   {user?.firstName || user?.email}
-                </div>
+                </span>
               </>
             ) : (
               <>
-                <Link to="/login" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600">
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
+                >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="px-3 py-2 rounded-md text-sm font-medium bg-cyan-600 text-white hover:bg-cyan-700"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700"
                 >
                   Register
                 </Link>
@@ -64,24 +68,12 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="flex md:hidden items-center">
+          <div className="flex items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-cyan-600 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500"
             >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              <MenuIcon className="h-6 w-6" isOpen={isMenuOpen} />
             </button>
           </div>
         </div>
@@ -91,41 +83,38 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <Container>
-            <div className="pt-2 pb-3 space-y-1">
+            <div className="pt-2 pb-3 space-y-1 sm:px-3">
               {isAuthenticated ? (
                 <>
                   <Link
                     to="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600"
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
                   >
                     Logout
                   </button>
-                  <div className="block px-3 py-2 rounded-md text-base font-medium text-gray-700">
+                  <span className="block px-3 py-2 text-base font-medium text-gray-500">
                     {user?.firstName || user?.email}
-                  </div>
+                  </span>
                 </>
               ) : (
                 <>
                   <Link
                     to="/login"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="block px-3 py-2 rounded-md text-base font-medium bg-cyan-600 text-white hover:bg-cyan-700"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-white bg-cyan-600 hover:bg-cyan-700"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Register
