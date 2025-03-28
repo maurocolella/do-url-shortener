@@ -32,5 +32,5 @@ COPY --from=build /app/dist ./dist
 # Expose the port
 EXPOSE 3000
 
-# Start the application
+# Start the application (migrations will run automatically on startup)
 CMD ["npm", "run", "start"]

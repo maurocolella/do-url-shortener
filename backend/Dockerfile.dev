@@ -11,5 +11,5 @@ RUN npm install
 # Expose the port
 EXPOSE 3000
 
-# Start the application in development mode
+# Start the application in development mode (migrations will run automatically on startup)
 CMD ["npm", "run", "start:dev"]

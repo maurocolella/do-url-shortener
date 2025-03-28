@@ -43,6 +43,29 @@ A full-stack URL shortener application built with NestJS, React, TypeScript, and
 
 ### Quick Start
 
+#### Database Setup
+
+The application uses TypeORM migrations to set up and maintain the database schema. For demonstration purposes, migrations run automatically when the application starts if the database is empty. This ensures reviewers can easily set up and run the application without manual steps.
+
+If you need to manually manage migrations, the backend provides the following npm scripts:
+
+```bash
+# Run migrations
+npm run migration:run
+
+# Revert the last migration
+npm run migration:revert
+
+# Show migration status
+npm run migration:show
+
+# Generate a new migration (after entity changes)
+npm run migration:generate -- src/migrations/MigrationName
+
+# Create an empty migration
+npm run migration:create -- src/migrations/MigrationName
+```
+
 #### Development Environment
 
 The easiest way to start the application in development mode is to use the development script:
@@ -57,6 +80,7 @@ This will:
 2. Mount your local code directories as volumes for hot-reloading
 3. Start the frontend with Vite's development server
 4. Start the backend with nodemon for automatic restarts
+5. Run database migrations automatically if needed
 
 The application will be available at:
 - Frontend: http://localhost:5173
@@ -75,6 +99,7 @@ This will:
 1. Build optimized production containers
 2. Start the application with production settings
 3. Run the frontend using Vite's preview server
+4. Run database migrations automatically if needed
 
 The application will be available at:
 - Frontend: http://localhost:4173
