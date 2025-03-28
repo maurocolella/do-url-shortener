@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       textColor: {
-        'tooltip-link': '#0ea5e9', // sky-500
-        'tooltip-link-hover': '#38bdf8', // sky-400
+        'tooltip-link': '#0891b2', // cyan-600
+        'tooltip-link-hover': '#06b6d4', // cyan-500
       },
       container: {
         center: true,

@@ -44,7 +44,7 @@ button.google-btn:hover {
 }
 button.google-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* blue-500 with opacity */
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.5); /* cyan-500 with opacity */
 }
 
 body {

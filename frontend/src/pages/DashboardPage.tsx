@@ -57,7 +57,7 @@ const DashboardPage = () => {
     toast.success('URL copied to clipboard!');
   };
 
-  const handleUrlClick = (url, event) => {
+  const handleUrlClick = (url: any, event: React.MouseEvent<HTMLAnchorElement>) => {
     // Prevent default to handle the click manually
     event.preventDefault();
     
@@ -117,7 +117,7 @@ const DashboardPage = () => {
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Original URL
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Short URL
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -142,7 +142,7 @@ const DashboardPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          <div className="flex items-center">
+                          <div className="flex items-center justify-end">
                             <a 
                               href={url.shortUrl} 
                               target="_blank" 

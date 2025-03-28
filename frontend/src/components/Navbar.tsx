@@ -22,7 +22,10 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-cyan-600">
+              <Link to="/" className="text-xl font-bold text-cyan-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
                 URL Shortener
               </Link>
             </div>
@@ -30,10 +33,6 @@ const Navbar = () => {
 
           {/* Desktop menu */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600">
-              Home
-            </Link>
-            
             {isAuthenticated ? (
               <>
                 <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600">
@@ -93,14 +92,6 @@ const Navbar = () => {
         <div className="md:hidden">
           <Container>
             <div className="pt-2 pb-3 space-y-1">
-              <Link
-                to="/"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              
               {isAuthenticated ? (
                 <>
                   <Link

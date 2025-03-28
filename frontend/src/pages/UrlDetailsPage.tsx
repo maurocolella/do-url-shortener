@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { fetchUrlById, incrementUrlVisits } from '../store/slices/urlSlice';
 import { toast } from 'react-toastify';
-import axios from '../api/axios';
 import Tooltip from '../components/Tooltip';
 
 // Get the base URL from environment or use default
@@ -34,7 +33,7 @@ const UrlDetailsPage = () => {
       .catch(() => toast.error('Failed to copy URL'));
   };
 
-  const handleUrlClick = (event) => {
+  const handleUrlClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // Prevent default to handle the click manually
     event.preventDefault();
     
@@ -93,7 +92,7 @@ const UrlDetailsPage = () => {
 
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-2">Short URL</h2>
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <a
                 href={shortUrl}
                 target="_blank"

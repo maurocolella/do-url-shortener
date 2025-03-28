@@ -13,7 +13,7 @@ const HomePage = () => {
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const dispatch = useDispatch<AppDispatch>();
-  const { currentUrl, loading, error } = useSelector((state: RootState) => state.url);
+  const { currentUrl, loading } = useSelector((state: RootState) => state.url);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
