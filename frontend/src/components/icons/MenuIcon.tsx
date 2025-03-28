@@ -1,11 +1,11 @@
 import React from 'react';
+import { IconProps } from './types';
 
-interface IconProps {
-  className?: string;
+interface MenuIconProps extends IconProps {
   isOpen?: boolean;
 }
 
-const MenuIcon: React.FC<IconProps> = ({ className = 'h-5 w-5', isOpen = false }) => {
+const MenuIcon: React.FC<MenuIconProps> = ({ className = 'h-5 w-5', style, isOpen = false }) => {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
@@ -13,6 +13,7 @@ const MenuIcon: React.FC<IconProps> = ({ className = 'h-5 w-5', isOpen = false }
       fill="none" 
       viewBox="0 0 24 24" 
       stroke="currentColor"
+      style={style}
     >
       {isOpen ? (
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

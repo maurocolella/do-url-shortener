@@ -1,10 +1,8 @@
 import React from 'react';
+import { IconProps } from './types';
 
-interface IconProps {
-  className?: string;
-}
 
-const GoogleIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => {
+const GoogleIcon: React.FC<IconProps> = ({ className = 'h-5 w-5', style }) => {
   return (
     <svg className={className} viewBox="0 0 24 24" width="24" height="24">
       <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">

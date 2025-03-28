@@ -34,6 +34,7 @@ Use them in your components:
 All icons accept the following props:
 
 - `className`: Optional string for custom styling (default: 'h-5 w-5')
+- `style`: Optional React.CSSProperties object for inline styles
 
 The `MenuIcon` component also accepts:
 

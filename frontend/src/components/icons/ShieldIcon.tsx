@@ -1,18 +1,16 @@
 import React from 'react';
+import { IconProps } from './types';
 
-interface IconProps {
-  className?: string;
-}
-
-const ShieldIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => {
+const ShieldIcon: React.FC<IconProps> = ({ className = 'h-5 w-5', style }) => {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
       className={className} 
       fill="none" 
-      viewBox="0 0 24 24" 
+      viewBox="0 0 24 26" 
       stroke="currentColor"
       preserveAspectRatio="xMidYMid meet"
+      style={style}
     >
       <path 
         strokeLinecap="round" 

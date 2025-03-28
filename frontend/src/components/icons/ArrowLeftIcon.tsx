@@ -1,10 +1,7 @@
 import React from 'react';
+import { IconProps } from './types';
 
-interface IconProps {
-  className?: string;
-}
-
-const ArrowLeftIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => {
+const ArrowLeftIcon: React.FC<IconProps> = ({ className = 'h-5 w-5', style }) => {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
@@ -12,6 +9,7 @@ const ArrowLeftIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => {
       fill="none" 
       viewBox="0 0 24 24" 
       stroke="currentColor"
+      style={style}
     >
       <path 
         strokeLinecap="round" 
