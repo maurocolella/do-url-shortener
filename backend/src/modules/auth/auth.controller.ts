@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller('api/auth')
 export class AuthController {
@@ -16,18 +17,21 @@ export class AuthController {
 
   @Post('register')
   @UseGuards(RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 5 }) // Stricter limit: 5 requests per minute
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
   @Post('login')
   @UseGuards(RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 5 }) // Stricter limit: 5 requests per minute
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(AuthGuard('google'), RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 10 }) // 10 requests per minute
   googleAuth() {
     // This route initiates the Google OAuth flow
     // The actual logic is handled by the GoogleStrategy

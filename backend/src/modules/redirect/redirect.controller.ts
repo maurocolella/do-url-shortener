@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UrlService } from '../url/url.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller()
 export class RedirectController {
@@ -13,6 +14,7 @@ export class RedirectController {
 
   @Get(':slug')
   @UseGuards(RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 30 }) // Allow 30 redirects per minute per IP
   async redirect(@Param('slug') slug: string, @Res() res: Response) {
     try {
       const originalUrl = await this.urlService.resolveUrl(slug);

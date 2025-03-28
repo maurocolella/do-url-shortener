@@ -143,14 +143,23 @@ url-shortener/
 ├── backend/                # NestJS backend
 │   ├── src/
 │   │   ├── common/         # Common utilities and guards
+│   │   │   ├── decorators/ # Custom decorators
+│   │   │   └── guards/     # Authentication and rate limiting guards
 │   │   ├── config/         # Configuration
 │   │   ├── modules/        # Feature modules
 │   │   │   ├── auth/       # Authentication module
 │   │   │   ├── redis/      # Redis module
-│   │   │   ├── url/        # URL module
-│   │   │   └── user/       # User module
+│   │   │   ├── redirect/   # URL redirection module
+│   │   │   ├── url/        # URL management module
+│   │   │   └── user/       # User management module
+│   │   ├── app.module.ts   # Main application module
 │   │   └── main.ts         # Application entry point
-│   └── test/               # Tests
+│   ├── test/               # Test files
+│   ├── .env                # Environment variables
+│   ├── .env.example        # Example environment variables
+│   ├── nest-cli.json       # NestJS CLI configuration
+│   ├── package.json        # Dependencies
+│   └── tsconfig.json       # TypeScript configuration
 ├── frontend/               # React frontend
 │   ├── cypress/            # Cypress tests
 │   ├── public/             # Static assets
@@ -176,6 +185,7 @@ The application includes robust URL normalization to ensure consistency when han
 - Preserving trailing slash for root paths (e.g., `https://example.com/`)
 - Removing trailing slash from non-root paths (e.g., `https://example.com/path` instead of `https://example.com/path/`)
 - Handling multiple trailing slashes (e.g., `https://example.com/path///` → `https://example.com/path`)
+- Handling multiple leading slashes (e.g., `https://example.com//path` → `https://example.com/path`)
 
 ### Query Parameter Handling
 - Sorting query parameters alphabetically for consistency
@@ -201,6 +211,51 @@ The application includes robust URL normalization to ensure consistency when han
 - Proper handling of null or undefined inputs
 
 This comprehensive approach ensures that URLs like `https://www.google.com/?` and `https://www.google.com/` are normalized to the same URL, preventing duplicate entries and improving the user experience.
+
+## Rate Limiting
+
+The application implements robust rate limiting to prevent abuse and ensure fair usage of the service. Rate limiting is applied to various endpoints based on their sensitivity and potential for abuse.
+
+### Implementation Details
+
+- **Redis-Based Storage**: Rate limiting leverages Redis for tracking request counts.
+- **Per-Endpoint Customization**: Each endpoint has custom rate limits based on its usage pattern and sensitivity.
+- **User vs. IP-Based Limits**: 
+  - Authenticated users are rate limited based on their user ID
+  - Unauthenticated requests are limited based on IP address
+
+### Rate Limited Endpoints
+
+- **Authentication**:
+  - Login: 5 requests per minute
+  - Registration: 5 requests per minute
+  - Google OAuth: 10 requests per minute
+
+- **URL Operations**:
+  - URL Creation: 10 requests per minute
+  - URL Updates: 15 requests per minute
+  - URL Deletion: 10 requests per minute
+
+- **Redirects**:
+  - URL Redirects: 30 requests per minute per IP
+
+### Rate Limit Headers
+
+When a request is rate-limited, the following headers are included in the response:
+
+- `X-RateLimit-Limit`: The maximum number of requests allowed in the current time window
+- `X-RateLimit-Remaining`: The number of requests remaining in the current time window
+- `X-RateLimit-Reset`: The time in seconds until the rate limit window resets
+- `Retry-After`: The time in seconds to wait before making another request (only present when rate limit is exceeded)
+
+### Configuration
+
+Rate limiting can be configured through environment variables:
+
+```
+RATE_LIMIT_TTL=60  # Time-to-live in seconds for rate limiting window
+RATE_LIMIT_MAX=10  # Maximum number of requests allowed in the window
+```
 
 ## License
 

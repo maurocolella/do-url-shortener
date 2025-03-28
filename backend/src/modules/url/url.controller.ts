@@ -7,6 +7,7 @@ import { UpdateUrlDto } from './dto/update-url.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserEntity } from '../user/entities/user.entity';
 
@@ -20,6 +21,7 @@ export class UrlController {
 
   @Post()
   @UseGuards(OptionalJwtAuthGuard, RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 10 }) // Stricter limit for URL creation: 10 per minute
   async create(@Body() createUrlDto: CreateUrlDto, @GetUser() user?: UserEntity) {
     const url = await this.urlService.create(createUrlDto, user);
     
@@ -84,6 +86,7 @@ export class UrlController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 15 }) // 15 updates per minute
   async update(
     @Param('id') id: string,
     @Body() updateUrlDto: UpdateUrlDto,
@@ -100,7 +103,8 @@ export class UrlController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RateLimitGuard)
+  @RateLimit({ ttl: 60, limit: 10 }) // 10 deletes per minute
   async remove(@Param('id') id: string, @GetUser() user: UserEntity) {
     await this.urlService.remove(id, user.id);
     return { success: true };
