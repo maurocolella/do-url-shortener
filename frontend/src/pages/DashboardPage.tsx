@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '../store';
 import { fetchUrls, deleteUrl, createUrl, fetchStats, incrementUrlVisits } from '../store/slices/urlSlice';
 import Tooltip from '../components/Tooltip';
 import { ClipboardIcon, EyeIcon, TrashIcon } from '../components/icons';
+import { useTabVisibility } from '../hooks/useTabVisibility';
 
 const DashboardPage = () => {
   const [originalUrl, setOriginalUrl] = useState('');
@@ -15,10 +16,19 @@ const DashboardPage = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
+  // Function to refresh dashboard data
+  const refreshData = useCallback(() => {
     dispatch(fetchUrls());
     dispatch(fetchStats());
   }, [dispatch]);
+
+  // Initial data load
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // Use the tab visibility hook to refresh data when tab becomes visible
+  useTabVisibility(refreshData);
 
   const handleCreateUrl = async (e: React.FormEvent) => {
     e.preventDefault();

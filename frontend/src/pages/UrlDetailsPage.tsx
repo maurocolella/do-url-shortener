@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
@@ -6,6 +6,7 @@ import { fetchUrlById, incrementUrlVisits } from '../store/slices/urlSlice';
 import { toast } from 'react-toastify';
 import Tooltip from '../components/Tooltip';
 import { ArrowLeftIcon, ClipboardIcon } from '../components/icons';
+import { useTabVisibility } from '../hooks/useTabVisibility';
 
 // Get the base URL from environment or use default
 const baseURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
@@ -16,11 +17,20 @@ const UrlDetailsPage = () => {
   const { currentUrl, loading, error } = useSelector((state: RootState) => state.url);
   const [visitCount, setVisitCount] = useState(0);
 
-  useEffect(() => {
+  // Function to refresh URL data
+  const refreshData = useCallback(() => {
     if (id) {
       dispatch(fetchUrlById(id));
     }
   }, [dispatch, id]);
+
+  // Initial data load
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // Use the tab visibility hook to refresh data when tab becomes visible
+  useTabVisibility(refreshData);
 
   useEffect(() => {
     if (currentUrl) {
