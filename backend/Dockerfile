@@ -3,28 +3,34 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install pnpm globally
+RUN npm install -g pnpm@latest
 
-# Install dependencies
-RUN npm ci
+# Copy pnpm lock file and package.json
+COPY pnpm-lock.yaml package.json ./
+
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm build
 
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install pnpm globally
+RUN npm install -g pnpm@latest
+
+# Copy pnpm lock file and package.json
+COPY pnpm-lock.yaml package.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN pnpm install --prod --frozen-lockfile
 
 # Copy built application from build stage
 COPY --from=build /app/dist ./dist
@@ -33,4 +39,4 @@ COPY --from=build /app/dist ./dist
 EXPOSE 3000
 
 # Start the application (migrations will run automatically on startup)
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "start"]

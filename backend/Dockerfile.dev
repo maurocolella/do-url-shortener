@@ -2,14 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Install pnpm globally
+RUN npm install -g pnpm@latest
+
+# Copy pnpm lock file and package.json
+COPY pnpm-lock.yaml package.json ./
 
 # Install dependencies
-RUN npm install
+RUN pnpm install
 
 # Expose the port
 EXPOSE 3000
 
 # Start the application in development mode (migrations will run automatically on startup)
-CMD ["npm", "run", "start:dev"]
+CMD ["pnpm", "start:dev"]
