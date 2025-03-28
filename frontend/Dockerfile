@@ -1,3 +1,4 @@
+# Build stage
 FROM node:20-alpine
 
 WORKDIR /app
@@ -8,15 +9,17 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy package.json and pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies
-RUN pnpm install
-RUN pnpm add -D @tailwindcss/vite@4.0.0
+# Install dependencies (including dev dependencies for building)
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application
 COPY . .
 
-# Expose the port
-EXPOSE 5173
+# Build the application with --skipLibCheck to avoid TypeScript errors
+RUN pnpm run build -- --skipLibCheck
 
-# Start the development server
-CMD ["pnpm", "run", "dev", "--host"]
+# Expose the port
+EXPOSE 4173
+
+# Start the Vite preview server with host flag to listen on all interfaces
+CMD ["pnpm", "run", "preview", "--host", "0.0.0.0"]

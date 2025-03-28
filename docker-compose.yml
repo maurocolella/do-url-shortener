@@ -5,14 +5,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "4173:4173"
     depends_on:
       - backend
     env_file:
       - ./frontend/.env
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=/api
     networks:
       - url-shortener-network
 
@@ -23,15 +23,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     depends_on:
       - postgres
       - redis
     env_file:
       - ./backend/.env
     environment:
+      - NODE_ENV=production
       - DB_HOST=postgres
       - REDIS_HOST=redis
     networks:

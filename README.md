@@ -43,16 +43,61 @@ A full-stack URL shortener application built with NestJS, React, TypeScript, and
 
 ### Quick Start
 
-The easiest way to get started is to use the initialization script:
+#### Development Environment
+
+The easiest way to start the application in development mode is to use the development script:
 
 ```bash
-chmod +x init.sh
-./init.sh
+chmod +x dev.sh
+./dev.sh
 ```
 
 This will:
-1. Build and start all containers
-2. Provide URLs to access the application
+1. Build and start all containers in development mode
+2. Mount your local code directories as volumes for hot-reloading
+3. Start the frontend with Vite's development server
+4. Start the backend with nodemon for automatic restarts
+
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000/api
+
+#### Production Environment
+
+To run the application in production mode, use the production script:
+
+```bash
+chmod +x prod.sh
+./prod.sh
+```
+
+This will:
+1. Build optimized production containers
+2. Start the application with production settings
+3. Run the frontend using Vite's preview server
+
+The application will be available at:
+- Frontend: http://localhost:4173
+- Backend API: http://localhost:3000/api
+
+### Docker Configuration
+
+The project uses Docker Compose with override files to manage different environments:
+
+- `docker-compose.yml`: Base configuration for production
+- `docker-compose.override.yml`: Development overrides (automatically used with `docker compose up`)
+
+#### Dockerfile Variants
+
+Each service has two Dockerfile variants:
+
+**Frontend:**
+- `Dockerfile`: Production build that creates an optimized build and serves it with Vite's preview server
+- `Dockerfile.dev`: Development setup with hot-reloading
+
+**Backend:**
+- `Dockerfile`: Production build with optimized dependencies
+- `Dockerfile.dev`: Development setup with nodemon for automatic restarts
 
 ### Manual Installation
 
