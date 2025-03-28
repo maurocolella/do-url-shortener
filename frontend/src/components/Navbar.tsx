@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
@@ -11,6 +11,9 @@ const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isOnDashboard = location.pathname === '/dashboard';
 
   const handleLogout = () => {
     dispatch(logout());
@@ -33,12 +36,21 @@ const Navbar = () => {
           <div className="hidden md:flex md:items-center md:space-x-4">
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
-                >
-                  Dashboard
-                </Link>
+                {isOnDashboard ? (
+                  <span
+                    className="px-3 py-2 rounded-md text-sm font-medium text-slate-800 bg-slate-100 cursor-default"
+                    aria-current="page"
+                  >
+                    Dashboard
+                  </span>
+                ) : (
+                  <Link
+                    to="/dashboard"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
@@ -86,13 +98,22 @@ const Navbar = () => {
             <div className="pt-2 pb-3 space-y-1 sm:px-3">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
+                  {isOnDashboard ? (
+                    <span
+                      className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 bg-slate-100 cursor-default"
+                      aria-current="page"
+                    >
+                      Dashboard
+                    </span>
+                  ) : (
+                    <Link
+                      to="/dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-cyan-600 hover:bg-gray-50"
