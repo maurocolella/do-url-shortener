@@ -1,6 +1,6 @@
 /**
  * URL Normalization Utility
- * Provides functions to normalize and canonicalize URLs
+ * Provides functions to normalize URLs in the same way as the backend
  */
 export class UrlNormalizer {
   /**
@@ -89,9 +89,9 @@ export class UrlNormalizer {
       return url;
     }
   }
-  
+
   /**
-   * Checks if two URLs are equivalent after normalization
+   * Compares two URLs to check if they are equivalent after normalization
    * 
    * @param url1 - First URL to compare
    * @param url2 - Second URL to compare
@@ -99,30 +99,6 @@ export class UrlNormalizer {
    */
   public static areEquivalent(url1: string, url2: string): boolean {
     return this.normalize(url1) === this.normalize(url2);
-  }
-  
-  /**
-   * Generates a hash for a URL and user ID combination
-   * This ensures that the same URL will produce different hashes for different users
-   * 
-   * @param url - The normalized URL
-   * @param userId - The user ID
-   * @returns A hash string that can be used for generating a unique alias
-   */
-  public static generateNamespacedHash(url: string, userId: string): string {
-    // Create a combined string of URL and user ID
-    const combined = `${url}:${userId}`;
-    
-    // Convert to a numeric hash (simple implementation)
-    let hash = 0;
-    for (let i = 0; i < combined.length; i++) {
-      const char = combined.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    // Make sure the hash is positive
-    return Math.abs(hash).toString();
   }
 
   /**

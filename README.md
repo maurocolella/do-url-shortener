@@ -163,6 +163,45 @@ url-shortener/
 └── docker-compose.yml      # Docker Compose configuration
 ```
 
+## URL Normalization
+
+The application includes robust URL normalization to ensure consistency when handling URLs. This prevents duplicate entries for URLs that are semantically identical but syntactically different. Our normalization handles the following edge cases:
+
+### Protocol Handling
+- Adding `https://` protocol if missing
+- Converting scheme to lowercase
+
+### Path Handling
+- Converting path to lowercase for case insensitivity
+- Preserving trailing slash for root paths (e.g., `https://example.com/`)
+- Removing trailing slash from non-root paths (e.g., `https://example.com/path` instead of `https://example.com/path/`)
+- Handling multiple trailing slashes (e.g., `https://example.com/path///` → `https://example.com/path`)
+
+### Query Parameter Handling
+- Sorting query parameters alphabetically for consistency
+- Preserving query parameter case
+- Handling multiple values for the same parameter
+- Removing empty query parameter markers (e.g., `https://example.com/?` → `https://example.com/`)
+- Preserving query parameters with empty values (e.g., `https://example.com/?param=`)
+- Skipping empty parameter names (e.g., `https://example.com/?=value` → `https://example.com/`)
+
+### Fragment (Hash) Handling
+- Preserving fragments in URLs
+- Maintaining fragments with query parameters
+- Correctly handling fragments with empty queries
+
+### Special Character Handling
+- Properly encoding international characters in paths
+- Preserving encoded characters
+- Maintaining port numbers in URLs
+- Preserving username and password components in URLs
+
+### Error Handling
+- Graceful handling of invalid URLs
+- Proper handling of null or undefined inputs
+
+This comprehensive approach ensures that URLs like `https://www.google.com/?` and `https://www.google.com/` are normalized to the same URL, preventing duplicate entries and improving the user experience.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

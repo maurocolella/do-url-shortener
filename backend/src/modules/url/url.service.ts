@@ -56,81 +56,73 @@ export class UrlService {
       relations: ['canonicalUrl']
     });
     
-    if (existingAlias) {
-      // If a custom slug is requested but the user already has a different alias
-      if (customSlug && existingAlias.alias !== customSlug) {
-        // Only allow changing if the new custom slug is not taken
-        const customSlugExists = await this.aliasRepository.findOne({ where: { alias: customSlug } });
-        if (customSlugExists) {
-          throw new ConflictException(`Alias '${customSlug}' is already in use`);
-        }
-        
-        // Update the existing alias to use the custom slug
-        existingAlias.alias = customSlug;
-        await this.aliasRepository.save(existingAlias);
-        
-        // Update the URL entity as well
-        const existingUrl = await this.urlRepository.findOne({ 
-          where: { 
-            originalUrl: normalizedUrl,
-            userId 
-          } 
-        });
-        
-        if (existingUrl) {
-          existingUrl.slug = customSlug;
-          const updatedUrl = await this.urlRepository.save(existingUrl);
-          
-          // Update the cache
-          await this.cacheUrl(customSlug, normalizedUrl);
-          
-          return updatedUrl;
-        }
-      } else {
-        // Return the existing URL entity
-        const existingUrl = await this.urlRepository.findOne({ 
-          where: { 
-            slug: existingAlias.alias,
-            userId 
-          } 
-        });
-        
-        if (existingUrl) {
-          return existingUrl;
-        }
-        
-        // If URL entity doesn't exist but alias does, create a new URL entity
-        const newUrl = this.urlRepository.create({
-          slug: existingAlias.alias,
-          originalUrl: normalizedUrl,
-          userId,
-        });
-        
-        return this.urlRepository.save(newUrl);
-      }
-    }
+    // Determine the slug to use
+    let slug: string;
     
-    // Generate or use custom alias
-    let alias: string;
     if (customSlug) {
+      // If a custom slug is provided, use it
       // Prevent anonymous users from using custom slugs
       if (isAnonymousUser) {
         throw new UnauthorizedException('You must be logged in to use custom slugs');
       }
       
-      // Check if custom slug is already taken
-      const existingCustomAlias = await this.aliasRepository.findOne({ where: { alias: customSlug } });
-      if (existingCustomAlias) {
-        throw new ConflictException(`Alias '${customSlug}' is already in use`);
+      // Check if custom slug is already taken by someone else
+      const existingCustomAlias = await this.aliasRepository.findOne({ 
+        where: { alias: customSlug } 
+      });
+      
+      if (existingCustomAlias && existingCustomAlias.userId !== userId) {
+        throw new ConflictException(`Alias '${customSlug}' is already in use by another user`);
       }
-      alias = customSlug;
+      
+      slug = customSlug;
     } else {
-      alias = await this.generateUniqueAlias(normalizedUrl, userId);
+      // If no custom slug is provided, always generate a new deterministic slug
+      // This will overwrite any existing slug for this user + URL combination
+      slug = await this.generateDeterministicAlias(normalizedUrl, userId);
     }
     
-    // Create the alias entity
+    if (existingAlias) {
+      // Update the existing alias with the new slug
+      existingAlias.alias = slug;
+      await this.aliasRepository.save(existingAlias);
+      
+      // Update the URL entity as well
+      const existingUrl = await this.urlRepository.findOne({ 
+        where: { 
+          originalUrl: normalizedUrl,
+          userId 
+        } 
+      });
+      
+      if (existingUrl) {
+        existingUrl.slug = slug;
+        const updatedUrl = await this.urlRepository.save(existingUrl);
+        
+        // Update the cache
+        await this.cacheUrl(slug, normalizedUrl);
+        
+        return updatedUrl;
+      }
+      
+      // If URL entity doesn't exist but alias does, create a new URL entity
+      const newUrl = this.urlRepository.create({
+        slug,
+        originalUrl: normalizedUrl,
+        userId,
+      });
+      
+      const savedUrl = await this.urlRepository.save(newUrl);
+      
+      // Update the cache
+      await this.cacheUrl(slug, normalizedUrl);
+      
+      return savedUrl;
+    }
+    
+    // Create a new alias entity
     const aliasEntity = this.aliasRepository.create({
-      alias,
+      alias: slug,
       userId,
       canonicalUrl,
     });
@@ -139,11 +131,11 @@ export class UrlService {
     const savedAlias = await this.aliasRepository.save(aliasEntity);
     
     // Cache the URL mapping
-    await this.cacheUrl(alias, normalizedUrl);
+    await this.cacheUrl(slug, normalizedUrl);
     
     // For backward compatibility, create a URL entity as well
     const url = this.urlRepository.create({
-      slug: alias,
+      slug,
       originalUrl: normalizedUrl,
       userId,
     });
@@ -297,6 +289,82 @@ export class UrlService {
     await this.aliasRepository.increment({ alias: slug }, 'visits', 1);
   }
 
+  /**
+   * Generates a deterministic alias for a URL and user combination
+   * This ensures that the same user + same URL always produces the same slug
+   * 
+   * @param normalizedUrl - The normalized URL
+   * @param userId - The user ID
+   * @returns A deterministic alias
+   */
+  private async generateDeterministicAlias(normalizedUrl: string, userId: string): Promise<string> {
+    // Generate a namespaced hash based on URL and user ID
+    const hash = UrlNormalizer.generateNamespacedHash(normalizedUrl, userId);
+    
+    // Convert hash to Base62
+    const slugLength = this.configService.get<number>('url.slugLength') || 6;
+    const baseAlias = Base62Util.encode(parseInt(hash.substring(0, 10)));
+    
+    // Ensure the alias is the right length
+    let alias = baseAlias.substring(0, slugLength);
+    if (alias.length < slugLength) {
+      alias = alias.padEnd(slugLength, '0');
+    }
+    
+    // Check if alias exists but is owned by a different user or points to a different URL
+    const existingAlias = await this.aliasRepository.findOne({ 
+      where: { alias },
+      relations: ['canonicalUrl']
+    });
+    
+    if (existingAlias) {
+      // If the alias exists but is owned by a different user or points to a different URL,
+      // we need to generate a new unique alias by adding a suffix
+      if (existingAlias.userId !== userId || existingAlias.canonicalUrl.canonicalUrl !== normalizedUrl) {
+        // If collision occurs, add a deterministic suffix based on the hash
+        let suffixCounter = 0;
+        let uniqueAlias = '';
+        
+        while (true) {
+          // Generate a deterministic suffix based on the hash and counter
+          const suffixBase = Base62Util.encode(parseInt(hash.substring(10 + suffixCounter, 15 + suffixCounter)) % 3844); // 62^2 = 3844
+          const suffix = suffixBase.substring(0, 2).padStart(2, '0');
+          uniqueAlias = alias.substring(0, slugLength - 2) + suffix;
+          
+          // Check if unique
+          const exists = await this.aliasRepository.findOne({ 
+            where: { alias: uniqueAlias },
+            relations: ['canonicalUrl']
+          });
+          
+          if (!exists || (exists.userId === userId && exists.canonicalUrl.canonicalUrl === normalizedUrl)) {
+            // If the alias doesn't exist or it exists but is owned by this user and points to this URL,
+            // we can use it
+            return uniqueAlias;
+          }
+          
+          // Try the next suffix
+          suffixCounter++;
+          
+          // If we've tried too many suffixes, fall back to a random one
+          if (suffixCounter > 5) {
+            return this.generateUniqueAlias(normalizedUrl, userId);
+          }
+        }
+      }
+    }
+    
+    return alias;
+  }
+
+  /**
+   * Generates a unique random alias
+   * This is used as a fallback when deterministic generation fails
+   * 
+   * @param normalizedUrl - The normalized URL
+   * @param userId - The user ID
+   * @returns A unique random alias
+   */
   private async generateUniqueAlias(normalizedUrl: string, userId: string): Promise<string> {
     // Generate a namespaced hash based on URL and user ID
     const hash = UrlNormalizer.generateNamespacedHash(normalizedUrl, userId);

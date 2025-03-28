@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { AppDispatch, RootState } from '../store';
-import { fetchUrls, deleteUrl, createUrl, fetchStats } from '../store/slices/urlSlice';
+import { fetchUrls, deleteUrl, createUrl, fetchStats, incrementUrlVisits } from '../store/slices/urlSlice';
 import Tooltip from '../components/Tooltip';
 
 const DashboardPage = () => {
@@ -58,14 +58,14 @@ const DashboardPage = () => {
   };
 
   const handleUrlClick = (url, event) => {
-    // Find the visit count element and update it optimistically
-    const row = event.target.closest('tr');
-    if (row) {
-      const visitCell = row.querySelector('td:nth-child(3)');
-      if (visitCell) {
-        visitCell.textContent = (parseInt(visitCell.textContent) + 1).toString();
-      }
-    }
+    // Prevent default to handle the click manually
+    event.preventDefault();
+    
+    // Dispatch action to increment visit count in the store
+    dispatch(incrementUrlVisits(url.id));
+    
+    // Open the URL in a new tab
+    window.open(url.shortUrl, '_blank');
   };
 
   return (
@@ -135,7 +135,7 @@ const DashboardPage = () => {
                     {urls.map((url) => (
                       <tr key={url.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-500">
-                          <div className="truncate max-w-[200px]">
+                          <div className="truncate max-w-[200px] text-left">
                             <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="black-link hover:underline">
                               {url.originalUrl}
                             </a>
@@ -143,7 +143,13 @@ const DashboardPage = () => {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
                           <div className="flex items-center">
-                            <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => handleUrlClick(url, e)} className="text-cyan-600 hover:underline mr-2 truncate">
+                            <a 
+                              href={url.shortUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              onClick={(e) => handleUrlClick(url, e)} 
+                              className="text-cyan-600 hover:underline mr-2 truncate"
+                            >
                               {url.slug}
                             </a>
                             <Tooltip content="Copy to clipboard" position="top">
@@ -267,7 +273,13 @@ const DashboardPage = () => {
                   <li key={url.id} className="border-b border-gray-100 pb-2 last:border-b-0 last:pb-0">
                     <div className="flex justify-between items-center">
                       <div className="truncate max-w-[180px]">
-                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline">
+                        <a 
+                          href={url.shortUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-cyan-600 hover:underline"
+                          onClick={(e) => handleUrlClick(url, e)}
+                        >
                           {url.slug}
                         </a>
                       </div>
