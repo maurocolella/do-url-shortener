@@ -8,9 +8,8 @@ import Tooltip from '../components/Tooltip';
 import { ArrowLeftIcon, ClipboardIcon } from '../components/icons';
 import { useTabVisibility } from '../hooks/useTabVisibility';
 
-// Get the base URL from environment or use default
-// Default preferred for simplicity/due to scope + robust baseline of tests
-const baseURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+// Get the public URL from environment or use default
+const publicURL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:3000';
 
 const UrlDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,8 +61,8 @@ const UrlDetailsPage = () => {
     );
   }
 
-  // Use the backend URL for the short URL
-  const shortUrl = `${baseURL}/${currentUrl.slug}`;
+  // Use the public URL for the short URL
+  const shortUrl = `${publicURL}/${currentUrl.slug}`;
 
   const handleUrlClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // Prevent default to handle the click manually
@@ -151,23 +150,7 @@ const UrlDetailsPage = () => {
           <h2 className="text-xl font-bold text-gray-800">Visit Statistics</h2>
         </div>
         <div className="p-6">
-          <div className="text-center py-12 text-gray-500">
-            No tracking data available for this URL yet.
-          </div>
-        </div>
-      </div>
-
-
-      <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">QR Code</h2>
-        </div>
-        <div className="p-6 flex justify-center">
-          <img 
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shortUrl)}`} 
-            alt="QR Code"
-            className="h-48 w-48"
-          />
+          <p className="text-gray-600">Visit statistics will be available soon.</p>
         </div>
       </div>
     </div>

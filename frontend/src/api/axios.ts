@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Get the base URL from environment or use default
-// Default preferred for simplicity/due to scope + robust baseline of tests
-const baseURL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+// Get the API URL from environment or use default
+const apiBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const instance = axios.create({
-  baseURL,
+  baseURL: apiBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },

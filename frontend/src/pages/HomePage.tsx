@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from '../store';
 import { createUrl, clearCurrentUrl } from '../store/slices/urlSlice';
 import { toast } from 'react-toastify';
 import { LightningIcon, ShieldIcon, ChartIcon } from '../components/icons'; // Import the icon components
+import { handleUrlShorteningError } from '../utils/error-handler';
 
 const HomePage = () => {
   const [url, setUrl] = useState('');
@@ -38,7 +39,7 @@ const HomePage = () => {
     }
   }, [currentUrl, loading]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
 
@@ -47,7 +48,12 @@ const HomePage = () => {
       ...(showCustomSlug && customSlug ? { customSlug } : {})
     };
 
-    dispatch(createUrl(urlData));
+    try {
+      await dispatch(createUrl(urlData)).unwrap();
+      // Success notification is handled by showing the shortened URL UI
+    } catch (error) {
+      handleUrlShorteningError(error);
+    }
   };
 
   const handleTooltipShow = () => {

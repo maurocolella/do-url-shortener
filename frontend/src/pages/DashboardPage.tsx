@@ -8,6 +8,7 @@ import { IUrl } from '../types/url.types';
 import Tooltip from '../components/Tooltip';
 import { ClipboardIcon, EyeIcon, TrashIcon } from '../components/icons';
 import { useTabVisibility } from '../hooks/useTabVisibility';
+import { handleUrlShorteningError } from '../utils/error-handler';
 
 const DashboardPage = () => {
   const [originalUrl, setOriginalUrl] = useState('');
@@ -50,8 +51,7 @@ const DashboardPage = () => {
       setCustomSlug('');
       toast.success('URL shortened successfully!');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to shorten URL';
-      toast.error(errorMessage);
+      handleUrlShorteningError(error);
     }
   };
 
