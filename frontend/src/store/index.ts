@@ -9,6 +9,8 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
+      // serializableCheck is disabled to allow flexibility during development,
+      // though current state if fully serializable
       serializableCheck: false,
     }),
 });

@@ -3,7 +3,8 @@
  * Provides functions to normalize URLs consistently with the backend
  * 
  * NOTE: This implementation should match the backend URL normalizer in
- * backend/src/common/utils/url-normalizer.util.ts as closely as possible.
+ * backend/src/common/utils/url-normalizer.util.ts as closely as possible,
+ * with minor differences. In the future, both could be merged into a common dependency.
  */
 export class UrlNormalizer {
   /**
