@@ -7,20 +7,21 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --port 5173",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "cypress run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
-    "test": "npm run test:unit"
+    "test": "npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.6.1",
     "autoprefixer": "^10.4.21",
     "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
     "framer-motion": "^12.6.2",
     "jwt-decode": "^4.0.0",
     "motion": "^12.6.2",

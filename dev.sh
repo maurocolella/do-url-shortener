@@ -5,7 +5,7 @@ echo "🧹 Cleaning up any existing containers..."
 docker compose down
 
 echo "📦 Starting Docker containers with dev configuration..."
-docker compose up "$@"
+docker compose up --build "$@"
 
 # The docker-compose.override.yml will be automatically used
 # Frontend will be available at http://localhost:5173

@@ -97,7 +97,7 @@ describe('useTabVisibility', () => {
     if (visibilityHandler) {
       // Create a mock event
       const mockEvent = {} as Event;
-      visibilityHandler(mockEvent);
+      (visibilityHandler as (event: Event) => void)(mockEvent);
     }
     
     // Callback should have been called
@@ -126,7 +126,7 @@ describe('useTabVisibility', () => {
     if (visibilityHandler) {
       // Create a mock event
       const mockEvent = {} as Event;
-      visibilityHandler(mockEvent);
+      (visibilityHandler as (event: Event) => void)(mockEvent);
     }
     
     // Callback should not have been called

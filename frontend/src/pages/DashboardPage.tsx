@@ -50,6 +50,9 @@ const DashboardPage = () => {
       setOriginalUrl('');
       setCustomSlug('');
       toast.success('URL shortened successfully!');
+      
+      // Refresh data after creating a new URL to update stats and topUrls
+      refreshData();
     } catch (error) {
       handleUrlShorteningError(error);
     }
@@ -280,6 +283,35 @@ const DashboardPage = () => {
               </button>
             </form>
           </div>
+          
+          {stats && stats.topUrls && stats.topUrls.length > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow-md mt-6" data-testid="top-urls-container">
+              <h2 className="text-xl font-semibold mb-4">Top Performing URLs</h2>
+              <ul className="space-y-3">
+                {stats.topUrls.map((url: IUrl) => (
+                  <li key={url.id} className="border-b border-gray-100 pb-2 last:border-b-0 last:pb-0">
+                    <div className="flex justify-between items-center">
+                      <div className="truncate max-w-[180px]">
+                        <a 
+                          href={url.shortUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-cyan-600 hover:underline"
+                          onClick={(e) => handleUrlClick(url, e)}
+                          data-testid={`top-url-${url.id}`}
+                        >
+                          {url.slug}
+                        </a>
+                      </div>
+                      <div className="text-sm text-gray-500" data-testid={`top-url-visits-${url.id}`}>
+                        {url.visits} visits
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

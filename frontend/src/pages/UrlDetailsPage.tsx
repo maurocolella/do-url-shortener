@@ -144,13 +144,25 @@ const UrlDetailsPage = () => {
         </div>
       </div>
 
-
       <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">Visit Statistics</h2>
         </div>
         <div className="p-6">
           <p className="text-gray-600">Visit statistics will be available soon.</p>
+        </div>
+      </div>
+
+      <div className="mt-8 bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">QR Code</h2>
+        </div>
+        <div className="p-6 flex justify-center">
+          <img 
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shortUrl)}`} 
+            alt="QR Code"
+            className="h-48 w-48"
+          />
         </div>
       </div>
     </div>

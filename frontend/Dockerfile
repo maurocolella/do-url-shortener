@@ -19,7 +19,7 @@ COPY . .
 RUN pnpm run build -- --skipLibCheck
 
 # Expose the port
-EXPOSE 4173
+EXPOSE 5173
 
 # Start the Vite preview server with host flag to listen on all interfaces
 CMD ["pnpm", "run", "preview", "--host", "0.0.0.0"]
